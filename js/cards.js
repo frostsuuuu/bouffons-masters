@@ -105,5 +105,13 @@ BM.CARDS = [
     description: "Le seul, l'unique. Fondateur du groupe, gardien des traditions, maître du chaos.",
     attaque: 120, defense: 100,
     emoji: "👑"
+  },
+  {
+    id: "killian-accart",
+    nom: "Killian Accart",
+    image: "images/killian-accart.jpg",
+    rarete: "commune",
+    description: "Phrase à venir…",
+    attaque: 12, defense: 16
   }
 ];
