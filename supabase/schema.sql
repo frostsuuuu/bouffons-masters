@@ -222,22 +222,6 @@ returns void language sql security definer set search_path = public as $$
   delete from player_devices where auth_id = auth.uid()
 $$;
 
--- Cartes tirées d'un booster : items = [ {card, level}, ... ] (10 max par appel)
-create or replace function public.add_cards(items jsonb)
-returns jsonb language plpgsql security definer set search_path = public as $$
-declare c jsonb; it jsonb; me uuid;
-begin
-  me := bm_me();
-  if me is null then raise exception 'PAS_DE_COMPTE'; end if;
-  if jsonb_typeof(items) <> 'array' or jsonb_array_length(items) > 10 then raise exception 'Trop de cartes'; end if;
-  select collection into c from players where id = me for update;
-  for it in select value from jsonb_array_elements(items) loop
-    c := bm_coll_add(c, it->>'card', coalesce(it->>'level', '1'), 1);
-  end loop;
-  update players set collection = c, updated_at = now() where id = me;
-  return c;
-end $$;
-
 -- Fusion : 2 exemplaires au niveau L → 1 exemplaire au niveau L+1
 -- (niveau 1 = sans étoile, 2 à 4 = ★ à ★★★ dorées, 5 à 7 = ★ à ★★★ arc-en-ciel ; 7 = max)
 create or replace function public.fuse_card(p_card text, p_level int)
@@ -319,11 +303,11 @@ end $$;
 revoke all on function public.bm_coll_add(jsonb, text, text, int) from public, anon, authenticated;
 revoke all on function public.bm_me(), public.my_player(), public.create_player(text, text),
   public.login_player(text, text), public.set_password(text, text), public.logout_device(),
-  public.add_cards(jsonb), public.fuse_card(text, int), public.propose_trade(uuid, jsonb, jsonb),
+  public.fuse_card(text, int), public.propose_trade(uuid, jsonb, jsonb),
   public.accept_trade(uuid), public.close_trade(uuid) from public, anon;
 grant execute on function public.bm_me(), public.my_player(), public.create_player(text, text),
   public.login_player(text, text), public.set_password(text, text), public.logout_device(),
-  public.add_cards(jsonb), public.fuse_card(text, int), public.propose_trade(uuid, jsonb, jsonb),
+  public.fuse_card(text, int), public.propose_trade(uuid, jsonb, jsonb),
   public.accept_trade(uuid), public.close_trade(uuid) to authenticated;
 
 -- ---------- Liste d'amis d'un joueur (visible par tous les joueurs) ----------
@@ -337,3 +321,198 @@ language sql stable security definer set search_path = public as $$
 $$;
 revoke all on function public.player_friends(uuid) from public, anon;
 grant execute on function public.player_friends(uuid) to authenticated;
+
+-- =========================================================
+--  ANTI-TRICHE : les boosters sont tirés par le serveur
+--  - le catalogue des cartes (id + rareté) et les réglages des boosters
+--    sont copiés ici automatiquement depuis cards.js / config.js
+--    quand un ADMIN (Frosty, BatZizi) ouvre le jeu ;
+--  - le stock de boosters de chaque joueur est compté par le serveur ;
+--  - plus aucun moyen de s'ajouter des cartes à la main.
+-- =========================================================
+create table if not exists public.bm_cards (
+  id     text primary key,
+  rarete text not null
+);
+create table if not exists public.bm_settings (
+  id                 int primary key default 1 check (id = 1),
+  cards_per_booster  int not null default 5,
+  recharge_minutes   numeric not null default 1,
+  boosters_max       int,                       -- null = illimité
+  boosters_start     int not null default 5,
+  guarantee          text,                      -- rareté minimale de la dernière carte (null = aucune)
+  rarities           jsonb not null default '[]'::jsonb,  -- [{id, poids}] de la plus commune à la plus rare
+  test_mode          boolean not null default false
+);
+alter table public.bm_cards enable row level security;
+alter table public.bm_settings enable row level security;
+revoke all on public.bm_cards, public.bm_settings from public, anon, authenticated;
+
+alter table public.players add column if not exists is_admin boolean not null default false;
+alter table public.players add column if not exists bstock int;
+alter table public.players add column if not exists blast timestamptz;
+
+-- Valeurs de départ (identiques à cards.js / config.js au moment de l'installation)
+insert into public.bm_settings (id, cards_per_booster, recharge_minutes, boosters_max, boosters_start, guarantee, rarities, test_mode)
+select 1, (s->>'cards_per_booster')::int, (s->>'recharge_minutes')::numeric, (s->>'boosters_max')::int,
+       (s->>'boosters_start')::int, s->>'guarantee', s->'rarities', coalesce((s->>'test_mode')::boolean, false)
+from (select '{"cards_per_booster":5,"recharge_minutes":1,"boosters_max":null,"boosters_start":5,"guarantee":"rare","rarities":[{"id":"commune","poids":70},{"id":"rare","poids":22},{"id":"epique","poids":6},{"id":"legendaire","poids":2}],"test_mode":false}'::jsonb s) x
+on conflict (id) do nothing;
+insert into public.bm_cards (id, rarete)
+select e->>'id', e->>'rarete' from jsonb_array_elements('[{"id":"pote-en-retard","rarete":"commune"},{"id":"roi-du-canape","rarete":"commune"},{"id":"accro-au-kebab","rarete":"commune"},{"id":"admin-whatsapp","rarete":"commune"},{"id":"blagues-nulles","rarete":"rare"},{"id":"dj-autoproclame","rarete":"commune"},{"id":"chef-des-pates","rarete":"rare"},{"id":"organisateur","rarete":"rare"},{"id":"photographe","rarete":"epique"},{"id":"roi-des-bouffons","rarete":"legendaire"}]'::jsonb) e
+on conflict (id) do nothing;
+
+-- Admins : les deux créateurs du jeu
+update public.players set is_admin = true where lower(pseudo) in ('frosty', 'batzizi');
+
+-- Stock de départ des joueurs déjà inscrits : ce que la recharge leur a donné depuis
+-- la création du compte, moins les boosters déjà ouverts.
+update public.players p set
+  bstock = greatest(0, s.boosters_start
+                        + floor(extract(epoch from now() - p.created_at) / (s.recharge_minutes * 60))::int
+                        - coalesce((p.stats->>'boosters')::int, 0)),
+  blast  = now()
+from public.bm_settings s
+where p.bstock is null and s.id = 1;
+update public.players p set bstock = least(p.bstock, s.boosters_max)
+from public.bm_settings s where s.id = 1 and s.boosters_max is not null and p.bstock > s.boosters_max;
+
+-- Nouveaux joueurs : stock de départ
+create or replace function public.bm_player_defaults() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.bstock is null then
+    select coalesce(boosters_max, boosters_start) into new.bstock from bm_settings where id = 1;
+    new.bstock := coalesce(new.bstock, 5);
+    new.blast := now();
+  end if;
+  new.is_admin := false; -- personne ne devient admin en créant son compte
+  return new;
+end $$;
+drop trigger if exists players_defaults on public.players;
+create trigger players_defaults before insert on public.players
+  for each row execute function public.bm_player_defaults();
+
+-- Recharge (même calcul que dans le jeu) : renvoie le stock à jour
+create or replace function public.bm_refill(p_id uuid)
+returns players language plpgsql security definer set search_path = public as $$
+declare p players; s bm_settings; iv numeric; gained int;
+begin
+  select * into s from bm_settings where id = 1;
+  select * into p from players where id = p_id for update;
+  iv := s.recharge_minutes * 60;
+  if p.bstock is null then p.bstock := coalesce(s.boosters_max, s.boosters_start); p.blast := now(); end if;
+  if s.boosters_max is not null and p.bstock >= s.boosters_max then
+    p.bstock := s.boosters_max; p.blast := now();
+  else
+    gained := floor(extract(epoch from now() - p.blast) / iv);
+    if gained > 0 then
+      p.bstock := p.bstock + gained;
+      if s.boosters_max is not null and p.bstock >= s.boosters_max then
+        p.bstock := s.boosters_max; p.blast := now();
+      else
+        p.blast := p.blast + make_interval(secs => gained * iv);
+      end if;
+    end if;
+  end if;
+  update players set bstock = p.bstock, blast = p.blast where id = p_id;
+  return p;
+end $$;
+
+-- Ouvrir un booster : vérifie le stock, tire les cartes, les ajoute à la collection
+create or replace function public.open_booster()
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare me uuid; p players; s bm_settings; n int; i int; pool jsonb; total numeric; x numeric;
+        r jsonb; chosen text; cid text; got text[] := '{}'; c jsonb; gidx int;
+begin
+  me := bm_me();
+  if me is null then raise exception 'PAS_DE_COMPTE'; end if;
+  select * into s from bm_settings where id = 1;
+  if not found or not exists (select 1 from bm_cards) then raise exception 'CATALOGUE_VIDE'; end if;
+  p := bm_refill(me);
+  if not s.test_mode then
+    if p.bstock <= 0 then raise exception 'PLUS_DE_BOOSTER'; end if;
+    if s.boosters_max is not null and p.bstock >= s.boosters_max then p.blast := now(); end if;
+    p.bstock := p.bstock - 1;
+  end if;
+  n := greatest(1, least(s.cards_per_booster, 10));
+  for i in 1..n loop
+    -- raretés qui ont au moins une carte, dans l'ordre (de la plus commune à la plus rare)
+    select coalesce(jsonb_agg(e.v order by e.ord), '[]'::jsonb) into pool
+    from jsonb_array_elements(s.rarities) with ordinality e(v, ord)
+    where exists (select 1 from bm_cards k where k.rarete = e.v->>'id')
+      and (i < n or s.guarantee is null
+           or e.ord >= coalesce((select o.ord from jsonb_array_elements(s.rarities) with ordinality o(v, ord) where o.v->>'id' = s.guarantee), 0));
+    if jsonb_array_length(pool) = 0 then
+      select coalesce(jsonb_agg(e.v order by e.ord), '[]'::jsonb) into pool
+      from jsonb_array_elements(s.rarities) with ordinality e(v, ord)
+      where exists (select 1 from bm_cards k where k.rarete = e.v->>'id');
+    end if;
+    select sum(greatest((v->>'poids')::numeric, 0)) into total from jsonb_array_elements(pool) v;
+    x := random() * coalesce(nullif(total, 0), 1);
+    chosen := null;
+    for r in select v from jsonb_array_elements(pool) v loop
+      x := x - greatest((r->>'poids')::numeric, 0);
+      if x < 0 then chosen := r->>'id'; exit; end if;
+    end loop;
+    if chosen is null then chosen := pool->(jsonb_array_length(pool) - 1)->>'id'; end if;
+    select k.id into cid from bm_cards k where k.rarete = chosen order by random() limit 1;
+    if cid is null then select k.id into cid from bm_cards k order by random() limit 1; end if;
+    got := got || cid;
+  end loop;
+  -- les plus rares à la fin, pour le suspense
+  select array_agg(g.id order by coalesce(o.ord, 0), g.n) into got
+  from unnest(got) with ordinality g(id, n)
+  join bm_cards k on k.id = g.id
+  left join jsonb_array_elements(s.rarities) with ordinality o(v, ord) on o.v->>'id' = k.rarete;
+  select collection into c from players where id = me;
+  foreach cid in array got loop c := bm_coll_add(c, cid, '1', 1); end loop;
+  update players set collection = c, bstock = p.bstock, blast = p.blast, updated_at = now() where id = me;
+  return jsonb_build_object('cards', to_jsonb(got), 'collection', c, 'bstock', p.bstock, 'blast', p.blast);
+end $$;
+
+-- Stock de boosters à jour (sans en ouvrir)
+create or replace function public.booster_status()
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare me uuid; p players;
+begin
+  me := bm_me();
+  if me is null then raise exception 'PAS_DE_COMPTE'; end if;
+  p := bm_refill(me);
+  return jsonb_build_object('bstock', p.bstock, 'blast', p.blast);
+end $$;
+
+-- Copie du catalogue et des réglages depuis le jeu (admins uniquement)
+create or replace function public.sync_catalog(p_cards jsonb, p_settings jsonb)
+returns void language plpgsql security definer set search_path = public as $$
+declare me uuid;
+begin
+  me := bm_me();
+  if me is null or not exists (select 1 from players where id = me and is_admin) then raise exception 'PAS_ADMIN'; end if;
+  if jsonb_typeof(p_cards) <> 'array' or jsonb_array_length(p_cards) = 0 then raise exception 'CATALOGUE_VIDE'; end if;
+  delete from bm_cards where id not in (select e->>'id' from jsonb_array_elements(p_cards) e);
+  insert into bm_cards (id, rarete) select e->>'id', e->>'rarete' from jsonb_array_elements(p_cards) e
+    where coalesce(e->>'id', '') <> '' and coalesce(e->>'rarete', '') <> ''
+    on conflict (id) do update set rarete = excluded.rarete;
+  insert into bm_settings (id) values (1) on conflict (id) do nothing;
+  update bm_settings set
+    cards_per_booster = coalesce((p_settings->>'cards_per_booster')::int, cards_per_booster),
+    recharge_minutes  = coalesce((p_settings->>'recharge_minutes')::numeric, recharge_minutes),
+    boosters_max      = (p_settings->>'boosters_max')::int,
+    boosters_start    = coalesce((p_settings->>'boosters_start')::int, boosters_start),
+    guarantee         = p_settings->>'guarantee',
+    rarities          = coalesce(p_settings->'rarities', rarities),
+    test_mode         = coalesce((p_settings->>'test_mode')::boolean, false)
+  where id = 1;
+end $$;
+
+-- Les colonnes boosters / admin ne sont modifiables que par le serveur
+revoke update on public.players from authenticated;
+grant update (vitrine, stats) on public.players to authenticated;
+
+-- L'ancienne fonction qui permettait d'ajouter n'importe quelle carte disparaît
+drop function if exists public.add_cards(jsonb);
+
+revoke all on function public.bm_refill(uuid), public.bm_player_defaults() from public, anon, authenticated;
+revoke all on function public.open_booster(), public.booster_status(), public.sync_catalog(jsonb, jsonb) from public, anon;
+grant execute on function public.open_booster(), public.booster_status(), public.sync_catalog(jsonb, jsonb) to authenticated;
