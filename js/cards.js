@@ -136,5 +136,12 @@ BM.CARDS = [
     image: "images/seif.webp",
     rarete: "rare",
     attaque: 52, defense: 46
+  },
+  {
+    id: "ajmol",
+    nom: "Ajmol",
+    image: "images/ajmol.jpg",
+    rarete: "rare",
+    attaque: 62, defense: 55
   }
 ];
