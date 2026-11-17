@@ -6,7 +6,28 @@
   <title>Bouffons Masters</title>
   <meta name="theme-color" content="#0b0a17">
   <link rel="icon" href="images/logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css">
+  <!--
+    MISE À JOUR AUTOMATIQUE
+    Les fichiers du jeu sont chargés avec un "?v=..." unique à chaque visite,
+    pour que tout le monde ait toujours la dernière version publiée sur GitHub.
+    js/maj.js vérifie aussi régulièrement si une nouvelle version est en ligne
+    et recharge la page tout seul (sans couper une ouverture de booster).
+    ⚠️ Si vous ajoutez un fichier .js ou .css, ajoutez-le dans BM_FILES ci-dessous
+    (dans le bon ordre), pas avec une balise <script> ou <link> classique.
+  -->
+  <script>
+    window.BM_FILES = {
+      css: ["css/style.css"],
+      js: [ // L'ordre compte : réglages → cartes → sauvegarde → logique → interface
+        "js/config.js", "js/supabase-config.js", "js/cards.js", "js/storage.js",
+        "js/game.js", "js/online.js", "js/app.js", "js/social.js", "js/maj.js"
+      ]
+    };
+    window.BM_VERSION_LOAD = Date.now();
+    BM_FILES.css.forEach(function (f) {
+      document.write('<link rel="stylesheet" href="' + f + '?v=' + BM_VERSION_LOAD + '">');
+    });
+  </script>
 </head>
 <body>
   <div id="errors" class="errors" hidden></div>
@@ -43,14 +64,11 @@
   <div id="fx" class="fx"></div>
   <div id="toasts" class="toasts"></div>
 
-  <!-- L'ordre compte : réglages → cartes → sauvegarde → logique → interface -->
-  <script src="js/config.js"></script>
-  <script src="js/supabase-config.js"></script>
-  <script src="js/cards.js"></script>
-  <script src="js/storage.js"></script>
-  <script src="js/game.js"></script>
-  <script src="js/online.js"></script>
-  <script src="js/app.js"></script>
-  <script src="js/social.js"></script>
+  <!-- Scripts du jeu : la liste est dans BM_FILES (en haut de la page) -->
+  <script>
+    BM_FILES.js.forEach(function (f) {
+      document.write('<script src="' + f + '?v=' + BM_VERSION_LOAD + '"><\/script>');
+    });
+  </script>
 </body>
 </html>
