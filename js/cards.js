@@ -121,5 +121,13 @@ BM.CARDS = [
     rarete: "commune",
     description: "J'aiMe jOuEr aU FoOt",
     attaque: 19, defense: 14
+  },
+  {
+    id: "esteban",
+    nom: "Esteban",
+    image: "images/esteban.webp",
+    rarete: "commune",
+    description: "Este la plaine 140",
+    attaque: 15, defense: 13
   }
 ];
