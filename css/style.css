@@ -237,12 +237,10 @@ h1, h2, h3 { margin: 0; }
   border-radius: 9cqw; display: grid; place-items: center;
   background:
     linear-gradient(165deg, rgba(255,255,255,.12), rgba(255,255,255,.02) 55%, rgba(255,255,255,.06)),
-    radial-gradient(circle at 18% 12%, rgba(255,60,172,.75) 0, transparent 45%),
-    radial-gradient(circle at 50% 50%, rgba(123,92,255,.7) 0, transparent 55%),
-    radial-gradient(circle at 92% 96%, rgba(43,210,255,.7) 0, transparent 45%),
-    #141226;
-  border: 0.8cqw solid rgba(190,170,255,.55);
-  box-shadow: inset 0 0 10cqw rgba(123,92,255,.35), 0 0 6cqw rgba(123,92,255,.35), 0 10px 30px rgba(0,0,0,.5);
+    radial-gradient(circle at 50% 48%, rgba(170,166,195,.45) 0, transparent 60%),
+    #1a1926;
+  border: 0.8cqw solid rgba(220,218,235,.45);
+  box-shadow: inset 0 0 10cqw rgba(200,198,220,.18), 0 10px 30px rgba(0,0,0,.5);
   transition: transform 0.2s;
 }
 /* Plaque de verre intérieure avec un fin quadrillage en losanges */
@@ -260,7 +258,7 @@ h1, h2, h3 { margin: 0; }
 .cb-logo { position: relative; z-index: 1; width: 52cqw; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center;
   background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.28), rgba(255,255,255,.06) 60%), rgba(20,18,38,.35);
   border: 0.6cqw solid rgba(255,255,255,.35);
-  box-shadow: 0 0 8cqw rgba(255,60,172,.45), inset 0 0 6cqw rgba(123,92,255,.4); }
+  box-shadow: 0 0 8cqw rgba(220,218,235,.25), inset 0 0 6cqw rgba(200,198,220,.25); }
 .cb-logo svg { width: 64%; height: auto; display: block; filter: drop-shadow(0 2cqw 3cqw rgba(0,0,0,.4)); }
 .pull-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; min-height: 48px; align-items: center; }
 
