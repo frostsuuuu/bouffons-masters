@@ -356,7 +356,9 @@
 
     const chips = (arr, side) => arr.length
       ? `<div class="chips-list">${arr.map((it, k) => {
-          const c = G.card(it.card), r = G.rarity(c.rarete);
+          const c = G.card(it.card);
+          if (!c) return ""; // carte retirée du jeu
+          const r = G.rarity(c.rarete);
           return `<button class="tchip" style="--rc:${r.couleur}" data-rm="${side}:${k}" title="Retirer">${esc(c.nom)}${it.level > 1 ? ` <span class="gold">${stars(it.level)}</span>` : ""} <span class="x">✕</span></button>`;
         }).join("")}</div>`
       : `<p class="muted small">${side === "give" ? "Rien (cadeau demandé)" : "Rien (c'est un cadeau)"}</p>`;

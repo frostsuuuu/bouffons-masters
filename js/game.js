@@ -205,7 +205,7 @@ BM.Game = (function () {
   function setCollection(serverColl) {
     const c = JSON.parse(JSON.stringify(serverColl || {}));
     state.collection = {};
-    Object.keys(c).forEach((id) => Object.keys(c[id] || {}).forEach((l) => { if (c[id][l] > 0) addCopy(id, +l, c[id][l]); }));
+    Object.keys(c).filter((id) => card(id)).forEach((id) => Object.keys(c[id] || {}).forEach((l) => { if (c[id][l] > 0) addCopy(id, +l, c[id][l]); }));
     state.pending.forEach((p) => addCopy(p.card, p.level, 1));
     save();
   }

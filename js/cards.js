@@ -16,78 +16,6 @@ window.BM = window.BM || {};
 
 BM.CARDS = [
   {
-    id: "pote-en-retard",
-    nom: "Le Pote Toujours en Retard",
-    image: "",
-    rarete: "commune",
-    attaque: 20, defense: 35,
-    emoji: "⏰"
-  },
-  {
-    id: "roi-du-canape",
-    nom: "Le Roi du Canapé",
-    image: "",
-    rarete: "commune",
-    attaque: 5, defense: 60,
-    emoji: "🛋️"
-  },
-  {
-    id: "accro-au-kebab",
-    nom: "L'Accro au Kebab",
-    image: "",
-    rarete: "commune",
-    attaque: 30, defense: 25,
-    emoji: "🥙"
-  },
-  {
-    id: "admin-whatsapp",
-    nom: "L'Admin du Groupe",
-    image: "",
-    rarete: "commune",
-    attaque: 25, defense: 20,
-    emoji: "💬"
-  },
-  {
-    id: "blagues-nulles",
-    nom: "Le Roi des Blagues Nulles",
-    image: "",
-    rarete: "rare",
-    attaque: 45, defense: 30,
-    emoji: "🤡"
-  },
-  {
-    id: "dj-autoproclame",
-    nom: "Le DJ Autoproclamé",
-    image: "",
-    rarete: "commune",
-    attaque: 50, defense: 35,
-    emoji: "🎧"
-  },
-  {
-    id: "chef-des-pates",
-    nom: "Le Chef des Pâtes",
-    image: "",
-    rarete: "rare",
-    attaque: 70, defense: 45,
-    emoji: "🍝"
-  },
-  {
-    id: "organisateur",
-    nom: "L'Organisateur de Vacances",
-    image: "",
-    rarete: "rare",
-    attaque: 40, defense: 75,
-    emoji: "🗺️"
-  },
-  {
-    id: "photographe",
-    nom: "Le Photographe des Soirées",
-    image: "",
-    rarete: "epique",
-    attaque: 85, defense: 70,
-    emoji: "📸"
-  },
-  {
     id: "roi-des-bouffons",
     nom: "Le Roi des Bouffons",
     image: "",
@@ -143,5 +71,33 @@ BM.CARDS = [
     image: "images/ajmol.jpg",
     rarete: "rare",
     attaque: 62, defense: 55
+  },
+  {
+    id: "krimi-chatte",
+    nom: "Krimi Chatte",
+    image: "images/krimi-chatte.webp",
+    rarete: "epique",
+    attaque: 82, defense: 74
+  },
+  {
+    id: "mikha-albinos",
+    nom: "Mikha Albinos",
+    image: "images/mikha-albinos.webp",
+    rarete: "rare",
+    attaque: 50, defense: 47
+  },
+  {
+    id: "monsieur-kouaye",
+    nom: "Monsieur Kouaye",
+    image: "images/monsieur-kouaye.webp",
+    rarete: "epique",
+    attaque: 76, defense: 85
+  },
+  {
+    id: "petit-nael-gilles-verdez",
+    nom: "Petit Nael x Gilles Verdez",
+    image: "images/petit-nael-gilles-verdez.webp",
+    rarete: "epique",
+    attaque: 80, defense: 80
   }
 ];
