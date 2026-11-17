@@ -235,33 +235,46 @@
     flash("#ffffff", 0.35);
     await wait(380); if (!alive()) return;
 
-    // 2. Le booster descend, les cartes montent (la meilleure — au fond — en premier)
+    // Tempo unique de l'ouverture : toutes les cartes bougent avec la même durée, la même courbe
+    // et le même écart entre elles (montée puis rangement), pour un mouvement régulier.
+    const BEAT = 100;                               // écart entre deux cartes (ms)
+    const MOVE = 300;                               // durée du mouvement de chaque carte (ms)
+    const EASE = "cubic-bezier(.45,0,.25,1)";       // même courbe pour tout
+    const SPAN = (n - 1) * BEAT + MOVE;             // durée totale d'une vague (5 cartes)
+    const moveT = `transform ${MOVE}ms ${EASE}, filter ${MOVE}ms ${EASE}, opacity ${MOVE}ms ${EASE}`;
+
+    // 2. Le booster descend pendant que les cartes montent une à une (la meilleure — au fond — en premier)
+    pack.style.transition = `transform ${SPAN}ms ${EASE}, opacity ${SPAN}ms ${EASE}`;
     pack.classList.add("drop");
-    slots.forEach((s) => (s.style.transition = ""));
-    const rise = 35; // écart entre chaque carte (ms) — rapide pour un simple aperçu des raretés
     for (let i = n - 1; i >= 0; i--) {
       const s = slots[i];
-      const delay = (n - 1 - i) * rise;
-      setTimeout(() => {
-        if (!alive()) return;
-        s.classList.add("aura", "rising");
-        s.style.transform = `translateY(${24 - i * 9.5}%)`; // sortie bien droite, sans inclinaison
-      }, delay);
+      s.style.transition = moveT;
+      s.style.transitionDelay = `${(n - 1 - i) * BEAT}ms`;
+      s.classList.add("aura");
+      s.style.transform = `translateY(${24 - i * 9.5}%)`; // sortie bien droite, sans inclinaison
     }
-    await wait((n - 1) * rise + 420); if (!alive()) return;
+    await wait(SPAN + BEAT * 2); if (!alive()) return; // petite pause pour apercevoir les raretés
 
-    // 3. Le booster s'en va, les cartes se rangent en pile (les auras s'éteignent)
+    // 3. Les cartes redescendent se ranger en pile, dans le même ordre et au même tempo ; le booster s'en va
     pack.classList.add("gone");
     $(".pk-beam").classList.remove("on");
+    stage.style.transition = `margin-bottom ${SPAN}ms ${EASE}`;
     stage.classList.remove("idle");
-    slots.forEach((s) => s.classList.remove("aura", "rising"));
-    pull.opening = false;
+    for (let i = n - 1; i >= 0; i--) {
+      const d = (n - 1 - i) * BEAT;
+      slots[i].style.transitionDelay = `${d}ms`;
+      setTimeout(() => slots[i].classList.remove("aura"), d);
+    }
     stage.insertAdjacentHTML("afterend", stackUiHTML());
     $("#topLine").innerHTML = `Carte <b id="cnum">1</b> / ${n}`;
     bindStack();
     layoutStack();
+    await wait(SPAN); if (!alive()) return;
+    // Pile en place : on rend la main au joueur et la 1re carte se retourne
+    slots.forEach((s) => { s.style.transition = ""; s.style.transitionDelay = ""; });
+    stage.style.transition = "";
+    pull.opening = false;
     scheduleAutoFlip(0);
-    await wait(700); if (!alive()) return;
     pack.remove();
     $(".pk-beam") && $(".pk-beam").remove();
   }
