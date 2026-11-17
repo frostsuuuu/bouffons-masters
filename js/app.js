@@ -130,10 +130,11 @@
   function packFaceHTML() {
     return `
       <div class="pf">
-        <div class="pf-rays"></div>
+        <div class="pf-wisps"></div>
+        <div class="pf-stars"></div>
+        <div class="pf-energy"></div>
         <div class="pf-crimp pf-crimp-top"></div>
-        <div class="pf-art">${LOGO}</div>
-        <div class="pf-title"><span>BOUFFONS</span><b>MASTERS</b></div>
+        <div class="pf-logo"></div>
         <div class="pf-ribbon">BOOSTER · ${C.cartesParBooster} CARTES</div>
         <div class="pf-pillow"></div>
         <div class="pf-gloss"></div>

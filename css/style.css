@@ -434,11 +434,11 @@ body.shake main { animation: shake 0.45s; }
 .pack3d {
   position: absolute; left: 3.5%; width: 93%; top: 0; height: 112%; z-index: 60;
   cursor: pointer; perspective: 900px;
-  filter: drop-shadow(0 22px 26px rgba(0,0,0,.55)) drop-shadow(0 0 34px rgba(123,92,255,.35));
+  filter: drop-shadow(0 22px 26px rgba(0,0,0,.55)) drop-shadow(0 0 34px rgba(60,170,255,.35));
   transition: transform 1.1s cubic-bezier(.55,0,.3,1), opacity .6s, filter .3s;
 }
 .pack3d:not(.tearing):not(.locked) { animation: float 3.2s ease-in-out infinite; }
-.pack3d:not(.locked):hover { filter: drop-shadow(0 26px 30px rgba(0,0,0,.6)) drop-shadow(0 0 46px rgba(255,60,172,.55)); }
+.pack3d:not(.locked):hover { filter: drop-shadow(0 26px 30px rgba(0,0,0,.6)) drop-shadow(0 0 46px rgba(80,190,255,.6)); }
 .pack3d.drop { transform: translateY(64%); }
 .pack3d.gone { transform: translateY(150%); opacity: 0; transition: transform .7s ease-in, opacity .6s ease-in; }
 .pack3d.locked { cursor: not-allowed; filter: grayscale(.85) brightness(.5) drop-shadow(0 22px 26px rgba(0,0,0,.55)); }
@@ -448,23 +448,27 @@ body.shake main { animation: shake 0.45s; }
 .pack3d.torn .pk-cap { animation: cap-off .75s cubic-bezier(.3,.1,.6,1) forwards; transform-origin: 0% 9%; }
 .pk-lock { position: absolute; top: 13%; right: 8%; font-size: 30px; }
 
-/* Visuel du paquet */
+/* Visuel du paquet : « Abysse » avec le logo du serveur */
 .pf { position: absolute; inset: 0; overflow: hidden; container-type: inline-size;
-  background: linear-gradient(165deg, #ff4fb3 0%, #8a4dff 40%, #3a2bd1 68%, #22c8ff 100%); }
-.pf-rays { position: absolute; inset: -20%;
+  background: linear-gradient(180deg, #050a18, #0c2448 55%, #04070f); }
+.pf-wisps { position: absolute; inset: 0; filter: blur(3cqw); opacity: .85;
   background:
-    radial-gradient(circle at 50% 50%, rgba(255,226,150,.6), transparent 26%),
-    repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,.14) 0 5deg, transparent 5deg 12deg); }
-.pf-crimp { position: absolute; left: 0; right: 0; height: 6.5%;
-  background: repeating-linear-gradient(90deg, rgba(255,255,255,.32) 0 2px, rgba(0,0,0,.2) 2px 5px), linear-gradient(180deg, #d9d3f2, #8d84b8); }
-.pf-crimp-top { top: 0; box-shadow: 0 3px 6px rgba(0,0,0,.35); }
-.pf-crimp-bottom { bottom: 0; box-shadow: 0 -3px 6px rgba(0,0,0,.35); }
-.pf-title { position: absolute; left: 0; right: 0; top: 12.5%; text-align: center; font-family: var(--font-display); line-height: .92; transform: rotate(-4deg); }
-.pf-title span, .pf-title b { display: block; -webkit-text-stroke: .9cqw #1b1240; paint-order: stroke fill; }
-.pf-title span { font-size: 11cqw; color: #fff; text-shadow: 0 1cqw 0 #1b1240; letter-spacing: .3cqw; }
-.pf-title b { font-size: 16cqw; color: #ffd36e; text-shadow: 0 1.3cqw 0 #8a3a00, 0 0 7cqw rgba(255,201,60,.7); }
-.pf-art { position: absolute; left: 50%; top: 55%; width: 60cqw; transform: translate(-50%, -50%) rotate(-6deg); filter: drop-shadow(0 2.5cqw 4cqw rgba(0,0,0,.5)); }
-.pf-art svg { width: 100%; display: block; }
+    radial-gradient(ellipse 18% 30% at 30% 80%, rgba(60,170,255,.55), transparent 70%),
+    radial-gradient(ellipse 14% 26% at 70% 84%, rgba(60,170,255,.5), transparent 70%),
+    radial-gradient(ellipse 10% 22% at 48% 22%, rgba(120,220,255,.45), transparent 70%),
+    radial-gradient(ellipse 20% 12% at 50% 96%, rgba(60,170,255,.6), transparent 70%); }
+.pf-stars { position: absolute; inset: 0;
+  background: radial-gradient(1px 1px at 20% 30%, #bfefff, transparent), radial-gradient(1.4px 1.4px at 80% 20%, #bfefff, transparent),
+    radial-gradient(1px 1px at 70% 75%, #bfefff, transparent), radial-gradient(1.2px 1.2px at 15% 70%, #bfefff, transparent), radial-gradient(1px 1px at 40% 88%, #bfefff, transparent); }
+.pf-energy { position: absolute; left: 50%; top: 50%; width: 120cqw; aspect-ratio: 1; transform: translate(-50%, -50%); filter: blur(5cqw);
+  background: radial-gradient(circle, rgba(140,230,255,.95) 0, rgba(40,160,255,.7) 22%, rgba(20,80,200,.35) 45%, transparent 65%); }
+.pf-logo { position: absolute; left: 50%; top: 50%; width: 160cqw; aspect-ratio: 970 / 671; transform: translate(-50%, -50%);
+  background: url(../images/logo-serveur.jpg) center / 100% 100% no-repeat;
+  -webkit-mask: radial-gradient(ellipse 50% 50% at 50% 50%, #000 55%, transparent 100%); mask: radial-gradient(ellipse 50% 50% at 50% 50%, #000 55%, transparent 100%); }
+.pf-crimp { position: absolute; left: 0; right: 0; height: 6.5%; z-index: 2;
+  background: repeating-linear-gradient(90deg, rgba(255,240,200,.55) 0 2px, rgba(60,35,0,.35) 2px 5px), linear-gradient(180deg, #f6e2a6, #b8862e 55%, #6e4a12); }
+.pf-crimp-top { top: 0; box-shadow: 0 3px 6px rgba(0,0,0,.45); }
+.pf-crimp-bottom { bottom: 0; box-shadow: 0 -3px 6px rgba(0,0,0,.45); }
 .pf-ribbon { position: absolute; left: 6%; right: 6%; bottom: 10%; text-align: center; padding: 2.2cqw 0; color: #fff;
   font: 800 4.3cqw var(--font); letter-spacing: 1cqw;
   background: linear-gradient(90deg, transparent, rgba(10,8,30,.78) 14%, rgba(10,8,30,.78) 86%, transparent); }
