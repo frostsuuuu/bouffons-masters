@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Bouffons Masters</title>
+  <meta name="theme-color" content="#0b0a17">
+  <link rel="icon" href="images/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="errors" class="errors" hidden></div>
+
+  <header class="topbar">
+    <a class="brand" href="#booster" aria-label="Booster">
+      <span class="brand-logo" data-logo></span>
+      <span class="brand-name">Bouffons <b>Masters</b></span>
+    </a>
+    <nav class="nav" aria-label="Navigation">
+      <a href="#booster" data-page="booster"><span class="ico">🎁</span><span>Booster</span></a>
+      <a href="#collection" data-page="collection"><span class="ico">🃏</span><span>Collection</span></a>
+      <a href="#fusion" data-page="fusion"><span class="ico">⚗️</span><span>Fusion</span><i class="nav-badge" id="fusionBadge" hidden></i></a>
+      <a href="#social" data-page="social"><span class="ico">👥</span><span>Social</span><i class="nav-badge" id="socialBadge" hidden></i></a>
+      <a href="#profil" data-page="profil"><span class="ico">👤</span><span>Profil</span></a>
+    </nav>
+    <div class="pill" id="boosterPill" title="Boosters disponibles">🎁 <b id="boosterCount">0</b><span class="pill-timer" id="pillTimer" hidden></span></div>
+  </header>
+
+  <main id="app"></main>
+
+  <footer class="footer">
+    <span>Bouffons Masters · V1.3</span>
+  </footer>
+
+  <div id="modal" class="modal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-box" role="dialog" aria-modal="true">
+      <button class="modal-close" data-close aria-label="Fermer">✕</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <div id="fx" class="fx"></div>
+  <div id="toasts" class="toasts"></div>
+
+  <!-- L'ordre compte : réglages → cartes → sauvegarde → logique → interface -->
+  <script src="js/config.js"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/cards.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/online.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/social.js"></script>
+</body>
+</html>
