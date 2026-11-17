@@ -174,16 +174,19 @@
     }).join("");
   }
 
-  function stackUiHTML() {
+  // idle = true : écran du booster fermé. Le bouton « Ouvrir le booster » est exactement là où sera
+  // ensuite le bouton pour faire défiler les cartes : on n'a jamais besoin de bouger la souris.
+  function stackUiHTML(idle) {
+    const n = idle ? C.cartesParBooster || 5 : pull.results.length;
     return `
-      <div class="stack-ui" id="stackUi">
+      <div class="stack-ui${idle ? " idle-ui" : ""}" id="stackUi">
         <div class="stack-nav">
           <button class="round-btn" id="prevBtn" aria-label="Carte précédente">‹</button>
-          <div class="dots">${pull.results.map((_, i) => `<i data-dot="${i}"></i>`).join("")}</div>
+          <div class="dots">${Array.from({ length: n }, (_, i) => `<i data-dot="${i}"></i>`).join("")}</div>
           <button class="round-btn" id="nextBtn" aria-label="Carte suivante">›</button>
         </div>
-        <button class="btn btn-primary btn-wide" id="mainBtn"></button>
-        <p class="muted small hint-text">${C.retournementAuto ? "Touche la carte pour la voir en grand · flèche ou bouton pour passer à la suivante" : "Touche la carte pour la retourner, puis pour la voir en grand · flèche ou bouton pour passer à la suivante"}</p>
+        <button class="btn btn-primary btn-wide" id="mainBtn">${idle ? "🎁 Ouvrir le booster" : ""}</button>
+        <p class="muted small hint-text">${idle ? "Touche le booster ou le bouton pour l'ouvrir" : C.retournementAuto ? "Touche la carte pour la voir en grand · flèche ou bouton pour passer à la suivante" : "Touche la carte pour la retourner, puis pour la voir en grand · flèche ou bouton pour passer à la suivante"}</p>
       </div>`;
   }
 
@@ -197,10 +200,10 @@
       <p class="counter" id="topLine">${locked
         ? `Prochain booster dans <b class="cd" data-countdown>${clock(G.msUntilNext())}</b>`
         : `<b>${leftLabel(left)}</b> booster${left > 1 ? "s" : ""} disponible${left > 1 ? "s" : ""}`}</p>
-      <div class="stage idle" id="stage">${packHTML(locked)}</div>
-      <p class="muted small pack-hint" id="packHint">${locked
-        ? `Un nouveau booster toutes les ${C.rechargeMinutes} minute${C.rechargeMinutes > 1 ? "s" : ""}${G.unlimited() ? "" : ` (jusqu'à ${C.boostersMax} en réserve)`}.`
-        : "Touche le booster pour le déchirer"}</p>
+      <div class="stage idle${locked ? "" : " ready"}" id="stage">${packHTML(locked)}</div>
+      ${locked
+        ? `<p class="muted small pack-hint" id="packHint">Un nouveau booster toutes les ${C.rechargeMinutes} minute${C.rechargeMinutes > 1 ? "s" : ""}${G.unlimited() ? "" : ` (jusqu'à ${C.boostersMax} en réserve)`}.</p>`
+        : stackUiHTML(true)}
     </section>`;
 
     const pack = $("#pack");
@@ -215,16 +218,19 @@
       tilt.style.setProperty("--gx", (x + 0.5) * 100 + "%");
     });
     pack.addEventListener("pointerleave", () => { tilt.style.transform = ""; });
-    pack.addEventListener("click", () => openPack(), { once: true });
+    pack.addEventListener("click", () => openPack());
+    $("#mainBtn").addEventListener("click", () => openPack());
   }
 
   /* ---------- Ouverture : déchirure → cartes qui sortent → pile ---------- */
   async function openPack() {
+    if (pull || !$("#pack")) return; // déjà en cours d'ouverture
     const res = G.openBooster();
     if (!res) return renderBooster();
     const id = ++seq;
     const alive = () => id === seq && $("#stage");
     pull = { results: res, index: 0, flipped: new Set(), done: false, opening: true };
+    lastAdvance = 0;
     updateChrome();
     afterBooster();
 
@@ -232,7 +238,11 @@
     const n = res.length;
     $(".pk-tilt", pack).style.transform = "";
     $("#topLine").innerHTML = "&nbsp;";
-    $("#packHint").textContent = "";
+    // Le bouton reste au même endroit : il sert maintenant à faire défiler les cartes
+    const ui = $("#stackUi");
+    if (ui) ui.outerHTML = stackUiHTML();
+    $("#mainBtn").textContent = "Ouverture…";
+    bindStack();
 
     // Les cartes sont glissées dans le paquet (cachées derrière le corps du booster)
     stage.insertAdjacentHTML("afterbegin", slotsHTML());
@@ -255,7 +265,7 @@
       stage.style.transition = "none";
       stage.classList.remove("idle");
       slots.forEach((s) => { s.style.transition = "none"; s.style.transitionDelay = ""; s.classList.remove("aura", "rising"); });
-      if (!$("#stackUi")) { stage.insertAdjacentHTML("afterend", stackUiHTML()); bindStack(); }
+      ignoreClickUntil = Date.now() + 450; // le clic qui a servi à passer l'animation ne fait rien d'autre
       $("#topLine").innerHTML = `Carte <b id="cnum">1</b> / ${n}`;
       pull.opening = false;
       layoutStack();
@@ -304,9 +314,7 @@
       slots[i].style.transitionDelay = `${d}ms`;
       setTimeout(() => slots[i].classList.remove("aura"), d);
     }
-    stage.insertAdjacentHTML("afterend", stackUiHTML());
     $("#topLine").innerHTML = `Carte <b id="cnum">1</b> / ${n}`;
-    bindStack();
     layoutStack();
     await wait(SPAN); if (!alive()) return;
     // Pile en place : on rend la main au joueur et la 1re carte se retourne
@@ -434,19 +442,34 @@
   // Flèche / bouton : passe à la carte suivante.
   // Si la carte est encore de dos ou en train de se retourner, on la révèle d'un coup et on passe :
   // en spammant, on file directement jusqu'à la dernière carte.
+  // Mode rapide : si le joueur passe à la suivante avant que la carte ait eu le temps de se retourner
+  // toute seule (ou s'il enchaîne les clics), la carte suivante arrive directement face visible.
+  let lastAdvance = 0, ignoreClickUntil = 0;
   function advance() {
     if (!pull || pull.done || pull.opening) return;
+    if (Date.now() < ignoreClickUntil) return;
+    const now = Date.now();
+    const quick = now - lastAdvance < (C.delaiRetournement ?? 1000) + FLIP_MS;
+    lastAdvance = now;
     const i = pull.index;
     const last = i >= pull.results.length - 1;
     const slot = $(`#stage .slot[data-i="${i}"]`);
     const busy = slot && slot.classList.contains("flipping");
+    const fast = quick || !pull.flipped.has(i) || busy;
     if (!pull.flipped.has(i) || busy) {
       revealInstant();
       if (last) return layoutStack(); // la dernière carte : on la montre au lieu de quitter
     } else if (last) return finishPull();
     pull.index++;
-    layoutStack();
-    scheduleAutoFlip(pull.index);
+    if (fast) {
+      revealInstant(); // la nouvelle carte arrive déjà retournée
+      layoutStack();
+      const card = pull.results[pull.index].card, ri = G.rarityIndex(card.rarete);
+      if (ri >= 2) burst($(`#stage .slot[data-i="${pull.index}"]`), G.rarity(card.rarete).couleur, ri);
+    } else {
+      layoutStack();
+      scheduleAutoFlip(pull.index);
+    }
   }
   // Toucher la carte du dessus : retourne-la, ou (déjà retournée) affiche sa fiche en grand
   function tapCard() {
@@ -490,7 +513,7 @@
     </section>`;
     $$(".recap .card").forEach((el) => el.addEventListener("click", () => openCardModal(el.dataset.card)));
     const again = $("#again");
-    if (again) again.addEventListener("click", () => { pull = null; renderBooster(); });
+    if (again) again.addEventListener("click", () => { pull = null; renderBooster(); openPack(); });
   }
 
   /* ---------- Effets spéciaux ---------- */
@@ -1134,8 +1157,10 @@
   $$("#modal [data-close]").forEach((el) => el.addEventListener("click", closeModal));
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") return closeModal();
-    if ($("#onboard") || !$("#modal").hidden || currentPage !== "booster" || !pull || pull.done || pull.opening) return;
-    if (e.target.tagName === "INPUT") return;
+    if ($("#onboard") || !$("#modal").hidden || currentPage !== "booster") return;
+    if (e.target.tagName === "INPUT" || e.target.tagName === "BUTTON") return; // un bouton a déjà son propre Espace/Entrée
+    if (!pull && (e.key === " " || e.key === "Enter") && $("#pack.ready, #stage.ready #pack")) { e.preventDefault(); return openPack(); }
+    if (!pull || pull.done || pull.opening) return;
     if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") { e.preventDefault(); advance(); }
     if (e.key === "ArrowLeft") back();
   });

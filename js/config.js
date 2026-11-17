@@ -55,7 +55,7 @@ BM.CONFIG = {
 
   /* ---------- Compte & social ---------- */
   pseudo: { min: 3, max: 16 },
-  vitrineMax: 4,               // nombre de cartes dans la vitrine du profil
+  vitrineMax: 5,               // nombre de cartes dans la vitrine du profil
 
   /* ---------- Collection ---------- */
   afficherNomCartesManquantes: false,   // true = on voit le nom des cartes pas encore obtenues
