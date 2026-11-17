@@ -48,8 +48,9 @@ BM.CONFIG = {
      2 exemplaires identiques (même nombre d'étoiles) → la carte gagne 1 étoile.
      Une carte sortie d'un booster n'a pas d'étoile. */
   fusion: {
-    etoilesMax: 4,
-    bonusParEtoile: 0.25        // +25 % d'attaque / défense par étoile
+    etoilesMax: 6,              // 3 étoiles dorées, puis 3 étoiles arc-en-ciel (2 cartes ★★★ dorées → 1 ★ arc-en-ciel)
+    etoilesParCouleur: 3,       // nombre d'étoiles dorées avant de passer à l'arc-en-ciel
+    bonusParEtoile: 0.25        // +25 % d'attaque / défense par palier (une ★ arc-en-ciel compte comme le 4e palier)
   },
 
   /* ---------- Compte & social ---------- */

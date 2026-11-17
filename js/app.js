@@ -14,8 +14,23 @@
 
   /* ================= Petits utilitaires ================= */
   // Niveau 1 = pas d'étoile, niveau 2 = ★, niveau 3 = ★★ …
-  const stars = (level) => "★".repeat(G.starsOf(level));
-  const starsLabel = (level) => (level <= 1 ? "Sans étoile" : `${stars(level)} <small>(${G.starsOf(level)} étoile${G.starsOf(level) > 1 ? "s" : ""})</small>`);
+  // Étoiles : 1 à 3 dorées, puis 1 à 3 arc-en-ciel (niveau 1 = sans étoile)
+  const PER_COLOR = () => C.fusion.etoilesParCouleur || 3;
+  const starTier = (level) => {
+    const n = G.starsOf(level), per = PER_COLOR();
+    return n > per ? { n: n - per, rainbow: true } : { n, rainbow: false };
+  };
+  const stars = (level) => {
+    const t = starTier(level);
+    if (t.n <= 0) return "";
+    return t.rainbow ? `<span class="stars-rainbow">${"★".repeat(t.n)}</span>` : "★".repeat(t.n);
+  };
+  const starsText = (level) => {
+    const t = starTier(level);
+    if (t.n <= 0) return "Sans étoile";
+    return `${t.n} étoile${t.n > 1 ? "s" : ""}${t.rainbow ? " arc-en-ciel" : ""}`;
+  };
+  const starsLabel = (level) => (level <= 1 ? "Sans étoile" : `${stars(level)} <small>(${starsText(level)})</small>`);
   const leftLabel = (n) => (n === Infinity ? "∞" : n);
   function clock(ms) {
     const s = Math.max(0, Math.ceil(ms / 1000));
@@ -570,7 +585,8 @@
           <span class="mini"></span><span>+</span><span class="mini"></span><span>→</span><span class="mini up">★</span>
         </div>
         <p>Fusionne <b>2 exemplaires identiques</b> d'une carte (avec le même nombre d'étoiles) : la carte gagne <b>une étoile ★</b>.
-        Chaque étoile donne +${Math.round(C.fusion.bonusParEtoile * 100)} % d'attaque et de défense, jusqu'à ${C.fusion.etoilesMax} étoiles.</p>
+        Chaque étoile donne +${Math.round(C.fusion.bonusParEtoile * 100)} % d'attaque et de défense, jusqu'à ${PER_COLOR()} étoiles dorées.
+        Ensuite, fusionne 2 cartes ★★★ pour obtenir une <span class="stars-rainbow">★</span> <b>arc-en-ciel</b>, jusqu'à ${C.fusion.etoilesMax - PER_COLOR()} étoiles arc-en-ciel.</p>
       </div>
       ${list.length ? `<div class="grid fusion-grid">${list.map((x) => `
         <div class="fusion-item">
@@ -632,11 +648,10 @@
     closeModal();
     const o = document.createElement("div");
     o.className = "fusion-anim";
-    const ns = G.starsOf(level + 1);
     o.innerHTML = `
       <div class="fa-left">${cardHTML(card, { level })}</div>
       <div class="fa-right">${cardHTML(card, { level })}</div>
-      <div class="fa-result">${cardHTML(card, { level: level + 1 })}<p>${stars(level + 1)} ${ns} étoile${ns > 1 ? "s" : ""} !</p></div>`;
+      <div class="fa-result">${cardHTML(card, { level: level + 1 })}<p>${stars(level + 1)} ${starsText(level + 1)} !</p></div>`;
     $("#fx").appendChild(o);
     setTimeout(() => flash(G.rarity(card.rarete).couleur, 0.8), 900);
     const end = () => { o.remove(); render(); };
