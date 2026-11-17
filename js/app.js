@@ -613,23 +613,27 @@
     const online = BM.Online.configured();
     const gained = new Set();
     let n = 0, error = null;
-    try {
-      for (let guard = 0; guard < 1000; guard++) {
-        const next = G.fusables()[0];
-        if (!next) break;
+    const refused = new Set(); // fusions refusées (ex. par le serveur) : on les saute et on continue avec les autres
+    for (let guard = 0; guard < 1000; guard++) {
+      const next = G.fusables().find((x) => !refused.has(x.card.id + ":" + x.level));
+      if (!next) break;
+      try {
         if (online) { await BM.Online.fuse(next.card.id, next.level); G.state.stats.fusions++; G.save(); }
-        else if (!G.fuse(next.card.id, next.level)) break;
+        else if (!G.fuse(next.card.id, next.level)) throw new Error("Fusion impossible");
         n++;
         gained.add(next.card.id);
+      } catch (e) {
+        error = e;
+        refused.add(next.card.id + ":" + next.level);
       }
-    } catch (e) { error = e; }
+    }
     fusing = false;
     if (online && n) BM.Online.pushStats(G.state.stats);
     if (n) {
       flash("#b06bff", 0.6);
       toast(`⚗️ <b>${n}</b> fusion${n > 1 ? "s" : ""} : ${gained.size} carte${gained.size > 1 ? "s ont" : " a"} gagné des étoiles !`);
     }
-    if (error) toast(esc(error.message), "bad");
+    if (error) toast(`${refused.size} fusion${refused.size > 1 ? "s" : ""} refusée${refused.size > 1 ? "s" : ""} : ${esc(error.message)}`, "bad");
     else if (!n) toast("Fusion impossible", "bad");
     updateChrome();
     render();
