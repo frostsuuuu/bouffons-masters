@@ -129,5 +129,13 @@ BM.CARDS = [
     rarete: "commune",
     description: "Este la plaine 140",
     attaque: 15, defense: 13
+  },
+  {
+    id: "elouan-chauve",
+    nom: "Elouan Chauve",
+    image: "images/elouan-chauve.webp",
+    rarete: "rare",
+    description: "un crane bien lisse",
+    attaque: 48, defense: 42
   }
 ];
