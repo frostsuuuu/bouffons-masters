@@ -113,5 +113,13 @@ BM.CARDS = [
     rarete: "commune",
     description: "Phrase à venir…",
     attaque: 12, defense: 16
+  },
+  {
+    id: "tayshan",
+    nom: "Tayshan",
+    image: "images/tayshan.jpg",
+    rarete: "commune",
+    description: "J'aiMe jOuEr aU FoOt",
+    attaque: 19, defense: 14
   }
 ];
