@@ -345,6 +345,7 @@ body.shake main { animation: shake 0.45s; }
 .stage .card:hover { transform: none; }
 .stage .card-back { border-radius: 18px; }
 .stage .cb-logo svg { max-width: 120px; }
+.stack-ui { display: flex; flex-direction: column; align-items: center; text-align: center; max-width: 92vw; }
 .stack-nav { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
 .round-btn { width: 44px; height: 44px; border-radius: 50%; border: 0; cursor: pointer; font-size: 26px; line-height: 1; padding-bottom: 3px; background: rgba(255,255,255,.1); box-shadow: inset 0 0 0 1px var(--line); transition: background .2s, opacity .2s; }
 .round-btn:hover:not(:disabled) { background: rgba(255,255,255,.18); }
