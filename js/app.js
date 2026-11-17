@@ -227,6 +227,29 @@
       s.style.zIndex = 40 - i;
     });
 
+    // Re-toucher pendant l'ouverture : on saute l'animation du booster et on arrive
+    // directement sur la pile de cartes (les cartes, elles, se retournent normalement)
+    let skipped = false;
+    const skipOpening = () => {
+      if (skipped || !pull || !pull.opening || id !== seq) return;
+      skipped = true;
+      seq++; // stoppe la suite de l'animation
+      pack.remove();
+      $(".pk-beam") && $(".pk-beam").remove();
+      stage.style.transition = "none";
+      stage.classList.remove("idle");
+      slots.forEach((s) => { s.style.transition = "none"; s.style.transitionDelay = ""; s.classList.remove("aura", "rising"); });
+      if (!$("#stackUi")) { stage.insertAdjacentHTML("afterend", stackUiHTML()); bindStack(); }
+      $("#topLine").innerHTML = `Carte <b id="cnum">1</b> / ${n}`;
+      pull.opening = false;
+      layoutStack();
+      void stage.offsetWidth; // applique la position finale sans transition
+      slots.forEach((s) => (s.style.transition = ""));
+      stage.style.transition = "";
+      scheduleAutoFlip(0);
+    };
+    stage.closest(".booster-page").addEventListener("pointerdown", skipOpening);
+
     // 1. Déchirure du haut
     pack.classList.add("tearing");
     await wait(520); if (!alive()) return;
@@ -553,14 +576,48 @@
         <div class="fusion-item">
           ${cardHTML(x.card, { level: x.level, count: x.count })}
           <button class="btn btn-primary btn-sm" data-fuse="${esc(x.card.id)}" data-lv="${x.level}" title="Fusionner">⚗️ → ${stars(x.level + 1)}</button>
-        </div>`).join("")}</div>`
+        </div>`).join("")}</div>
+      <div class="fuse-all-bar"><button class="btn btn-primary btn-wide" id="fuseAll">⚗️ Tout fusionner</button>
+        <p class="muted small">Fusionne d'un coup toutes les paires possibles, étoile après étoile, jusqu'à ce qu'il n'en reste plus.</p></div>`
         : `<div class="empty">Aucune fusion possible pour l'instant.<br>Il te faut 2 exemplaires d'une même carte avec le même nombre d'étoiles.<br><br><a class="btn btn-primary" href="#booster">🎁 Ouvrir un booster</a></div>`}
     </section>`;
     $$("[data-fuse]").forEach((b) => b.addEventListener("click", () => doFuse(b.dataset.fuse, +b.dataset.lv)));
+    const fa = $("#fuseAll");
+    if (fa) fa.addEventListener("click", () => doFuseAll(fa));
     $$(".fusion-item .card").forEach((el) => el.addEventListener("click", () => openCardModal(el.dataset.card)));
   }
 
   let fusing = false;
+
+  // Fusionne tout ce qui peut l'être, en cascade (2×★0 → ★1, puis 2×★1 → ★2, etc.)
+  async function doFuseAll(btn) {
+    if (fusing) return;
+    fusing = true;
+    if (btn) { btn.disabled = true; btn.textContent = "Fusion en cours…"; }
+    const online = BM.Online.configured();
+    const gained = new Set();
+    let n = 0, error = null;
+    try {
+      for (let guard = 0; guard < 1000; guard++) {
+        const next = G.fusables()[0];
+        if (!next) break;
+        if (online) { await BM.Online.fuse(next.card.id, next.level); G.state.stats.fusions++; G.save(); }
+        else if (!G.fuse(next.card.id, next.level)) break;
+        n++;
+        gained.add(next.card.id);
+      }
+    } catch (e) { error = e; }
+    fusing = false;
+    if (online && n) BM.Online.pushStats(G.state.stats);
+    if (n) {
+      flash("#b06bff", 0.6);
+      toast(`⚗️ <b>${n}</b> fusion${n > 1 ? "s" : ""} : ${gained.size} carte${gained.size > 1 ? "s ont" : " a"} gagné des étoiles !`);
+    }
+    if (error) toast(esc(error.message), "bad");
+    else if (!n) toast("Fusion impossible", "bad");
+    updateChrome();
+    render();
+  }
   async function doFuse(id, level) {
     const card = G.card(id);
     if (fusing) return;
