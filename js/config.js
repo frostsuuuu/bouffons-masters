@@ -22,7 +22,7 @@ BM.CONFIG = {
   // true = chaque carte du paquet se retourne toute seule après un délai
   // false = il faut toucher chaque carte pour la retourner
   retournementAuto: true,
-  delaiRetournement: 1000,     // ms pendant lesquels la carte reste de dos avant de se retourner
+  delaiRetournement: 350,      // ms pendant lesquels la carte reste de dos avant de se retourner
 
   // La dernière carte de chaque booster est au moins de cette rareté.
   // Mettre null pour désactiver la garantie.

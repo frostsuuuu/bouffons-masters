@@ -323,10 +323,10 @@
       d.classList.toggle("on", i === index);
     });
     $("#prevBtn").disabled = index === 0;
-    $("#nextBtn").disabled = !flipped.has(index);
+    $("#nextBtn").disabled = false;
     const remaining = results.length - 1 - index;
     const btn = $("#mainBtn");
-    if (!flipped.has(index)) btn.textContent = "Retourner la carte";
+    if (!flipped.has(index) && remaining === 0) btn.textContent = "Retourner la carte";
     else if (remaining > 0) btn.textContent = `Encore ${remaining} carte${remaining > 1 ? "s" : ""}`;
     else btn.textContent = "Voir mon booster";
   }
@@ -342,6 +342,8 @@
   }
 
   // Retournement animé de la carte du dessus
+  const FLIP_MS = 500;      // durée du retournement (doit correspondre à .flipping dans style.css)
+  let flipTimers = [];
   function flipCurrent() {
     const i = pull.index;
     if (pull.flipped.has(i)) return;
@@ -350,24 +352,46 @@
     const slot = $(`#stage .slot[data-i="${i}"]`);
     if (slot) {
       slot.classList.add("flipping");
-      setTimeout(() => { slot.classList.remove("flipping"); slot.classList.add("flipped"); }, 900);
+      flipTimers.push(setTimeout(() => { slot.classList.remove("flipping"); slot.classList.add("flipped"); }, FLIP_MS));
     }
     layoutStack();
     const card = pull.results[i].card;
     const ri = G.rarityIndex(card.rarete);
     const col = G.rarity(card.rarete).couleur;
-    if (ri >= 2) setTimeout(() => burst(slot, col, ri), 420);
-    if (ri >= 4) setTimeout(() => { flash(col, 0.55); document.body.classList.add("shake"); setTimeout(() => document.body.classList.remove("shake"), 500); }, 420);
+    const fx = Math.round(FLIP_MS * 0.46);
+    if (ri >= 2) flipTimers.push(setTimeout(() => burst(slot, col, ri), fx));
+    if (ri >= 4) flipTimers.push(setTimeout(() => { flash(col, 0.55); document.body.classList.add("shake"); setTimeout(() => document.body.classList.remove("shake"), 500); }, fx));
   }
 
-  // Toucher : retourne la carte, ou (si déjà retournée) l'envoie et passe à la suivante
+  // Retourne la carte du dessus instantanément (sans animation ni effets) — utilisé quand on enchaîne vite
+  function revealInstant() {
+    const i = pull.index;
+    clearTimeout(revealTimer);
+    flipTimers.forEach(clearTimeout); flipTimers = [];
+    pull.flipped.add(i);
+    const slot = $(`#stage .slot[data-i="${i}"]`);
+    if (slot) {
+      slot.classList.add("instant");
+      slot.classList.remove("flipping");
+      slot.classList.add("flipped");
+      void slot.offsetWidth; // applique le retournement sans transition
+      slot.classList.remove("instant");
+    }
+  }
+
+  // Flèche / bouton : passe à la carte suivante.
+  // Si la carte est encore de dos ou en train de se retourner, on la révèle d'un coup et on passe :
+  // en spammant, on file directement jusqu'à la dernière carte.
   function advance() {
     if (!pull || pull.done || pull.opening) return;
     const i = pull.index;
+    const last = i >= pull.results.length - 1;
     const slot = $(`#stage .slot[data-i="${i}"]`);
-    if (slot && slot.classList.contains("flipping")) return; // on laisse finir l'animation
-    if (!pull.flipped.has(i)) return flipCurrent();
-    if (i >= pull.results.length - 1) return finishPull();
+    const busy = slot && slot.classList.contains("flipping");
+    if (!pull.flipped.has(i) || busy) {
+      revealInstant();
+      if (last) return layoutStack(); // la dernière carte : on la montre au lieu de quitter
+    } else if (last) return finishPull();
     pull.index++;
     layoutStack();
     scheduleAutoFlip(pull.index);

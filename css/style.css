@@ -221,6 +221,7 @@ h1, h2, h3 { margin: 0; }
 .pull.deal .slot { animation: deal 0.55s var(--d) cubic-bezier(.2, .9, .3, 1.2) both; }
 .flip-inner { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(.3, 1.2, .4, 1); }
 .slot.flipped .flip-inner { transform: rotateY(180deg); }
+.slot.instant .flip-inner, .slot.instant .flip-front::after { transition: none !important; animation: none !important; }
 .flip-back, .flip-front { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .flip-front { transform: rotateY(180deg); }
 .flip-front .card:hover { transform: none; }
@@ -479,10 +480,10 @@ body.shake main { animation: shake 0.45s; }
 
 /* Retournement 3D */
 .stage .slot { perspective: 1400px; }
-.slot.flipping .flip-inner { animation: card-flip .9s cubic-bezier(.35,.1,.25,1) forwards; }
+.slot.flipping .flip-inner { animation: card-flip .5s cubic-bezier(.35,.1,.25,1) forwards; }
 .flip-front::after { content: ""; position: absolute; inset: 0; border-radius: 12px; pointer-events: none; opacity: 0; z-index: 4;
   background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.75) 50%, transparent 65%); background-size: 260% 260%; }
-.slot.flipping .flip-front::after { animation: flip-shine .9s ease-out; }
+.slot.flipping .flip-front::after { animation: flip-shine .5s ease-out; }
 
 /* Étoiles (en haut à gauche de l'image) */
 .card-stars { position: absolute; left: 2.6cqw; top: 2.6cqw; padding: .6cqw 2.4cqw .9cqw; border-radius: 99px;
