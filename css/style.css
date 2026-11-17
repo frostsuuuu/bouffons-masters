@@ -150,24 +150,31 @@ h1, h2, h3 { margin: 0; }
 .card:hover { transform: translateY(-4px); }
 .card-inner {
   position: absolute; inset: 0; overflow: hidden;
-  display: flex; flex-direction: column; gap: 3cqw;
+  display: flex; flex-direction: column; gap: 3.8cqw;
   padding: 4.5cqw;
-  border-radius: 6cqw;
-  background: linear-gradient(165deg, color-mix(in srgb, var(--rc) 24%, #1d1845) 0%, #120f2c 55%, #0c0a1e 100%);
-  border: 2.6cqw solid var(--rc);
-  box-shadow: 0 0 0 0.6cqw rgba(0, 0, 0, 0.5) inset, 0 0 4cqw color-mix(in srgb, var(--rc) 45%, transparent);
+  border-radius: 9cqw;
+  /* Verre teinté : voile de la couleur de la rareté posé sur deux halos flous */
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--rc) 38%, transparent), color-mix(in srgb, var(--rc2) 18%, transparent) 60%, rgba(255,255,255,.03)),
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--rc) 80%, transparent) 0, transparent 62%),
+    radial-gradient(circle at 96% 100%, color-mix(in srgb, var(--rc2) 85%, transparent) 0, transparent 48%),
+    #141226;
+  border: 0.8cqw solid color-mix(in srgb, var(--rc) 75%, transparent);
+  box-shadow: inset 0 0 10cqw color-mix(in srgb, var(--rc) 35%, transparent), 0 0 calc(var(--lv) * 2.7cqw) color-mix(in srgb, var(--rc) 60%, transparent);
 }
-.card-head { display: flex; align-items: center; height: 18cqw; flex-shrink: 0; }
-.card-name { font-weight: 800; font-size: 7.6cqw; line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.card-art { position: relative; flex: 1; min-height: 0; border-radius: 3.5cqw; overflow: hidden; background: #000; box-shadow: 0 0 0 0.8cqw color-mix(in srgb, var(--rc) 60%, transparent); flex-shrink: 0; }
+.card-head { display: flex; align-items: center; min-height: 8cqw; flex-shrink: 0; }
+.card-name { font-weight: 700; font-size: 6.2cqw; line-height: 1.15; letter-spacing: -0.1cqw; color: #fff; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card-art { position: relative; flex: 1; min-height: 0; border-radius: 6.8cqw; overflow: hidden; flex-shrink: 0;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--rc) 30%, rgba(255,255,255,.18)), rgba(255,255,255,.04));
+  border: 0.4cqw solid color-mix(in srgb, var(--rc) 60%, rgba(255,255,255,.3)); }
 .card-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.card.big .card-art { flex: none; aspect-ratio: 4 / 3; }
-.card.big .card-name { font-size: 7cqw; }
-.card-desc { font-size: 4.6cqw; line-height: 1.35; color: #d7d5f5; margin: 0; flex: 1; overflow: hidden; font-style: italic; }
-.card-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 2cqw; padding-top: 3cqw; border-top: 0.5cqw solid rgba(255, 255, 255, 0.1); }
-.card-rarity { font-size: 5.6cqw; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3cqw; color: var(--rc); }
-.card-stats { display: flex; gap: 3cqw; font-size: 6cqw; }
-.card-stats b { white-space: nowrap; }
+.card-desc { display: none; } /* la phrase n'apparaît que dans la fiche de la carte */
+.card-foot { display: flex; align-items: center; justify-content: space-between; gap: 2cqw; flex-shrink: 0; }
+.card-rarity { font-size: 4.4cqw; font-weight: 800; padding: 1.5cqw 4.2cqw; border-radius: 99px; white-space: nowrap;
+  background: var(--rc); color: #0e0c1d; }
+.card.r-commune .card-rarity { background: #d3d9e6; }
+.card-stats { display: flex; gap: 3.5cqw; font-size: 5.3cqw; font-weight: 700; color: #fff; }
+.card-stats b { white-space: nowrap; font-weight: 700; }
 .card-count, .card-new {
   position: absolute; z-index: 3; font-weight: 900; border-radius: 99px;
   font-size: 11px; padding: 3px 8px;
@@ -175,24 +182,23 @@ h1, h2, h3 { margin: 0; }
 .card-count { top: -7px; right: -7px; background: #fff; color: #120f2c; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); }
 .card-new { top: -8px; left: 50%; transform: translateX(-50%); background: var(--pink); color: #fff; box-shadow: 0 0 14px var(--pink); letter-spacing: 1px; animation: pop 0.5s 0.4s both; }
 
-/* Effets par rareté */
-.card.r-rare .card-inner { box-shadow: 0 0 0 0.6cqw rgba(0,0,0,.5) inset, 0 0 7cqw color-mix(in srgb, var(--rc) 65%, transparent); }
-.card.r-epique .card-inner { animation: pulse 2.4s ease-in-out infinite; }
-.card.r-legendaire .card-inner { animation: pulse-gold 2s ease-in-out infinite; background: linear-gradient(165deg, #3a2a0e 0%, #1d1530 55%, #0c0a1e 100%); }
-.card.r-epique .card-inner::after, .card.r-legendaire .card-inner::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
-  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.22) 45%, rgba(255, 120, 220, 0.18) 50%, rgba(120, 220, 255, 0.18) 55%, transparent 70%);
-  background-size: 250% 250%; mix-blend-mode: screen; animation: holo 3.5s linear infinite;
-}
-.card.r-epique .card-inner::after { opacity: 0.55; }
+/* Raretés : 2e couleur des halos et intensité de la lueur (--lv) */
+.card.r-commune     { --rc2: #6b7486; --lv: 1; }
+.card.r-peu_commune { --rc2: #0f8a52; --lv: 2; }
+.card.r-rare        { --rc2: #1450b8; --lv: 3; }
+.card.r-epique      { --rc2: #5b17a8; --lv: 4; }
+.card.r-legendaire  { --rc2: #d0306a; --lv: 5; }
+.card.r-legendaire .card-inner { border-color: #ffc96b; }
+/* Carte avec étoiles : la pastille est posée sur le coin, on décale un peu le nom pour ne pas le cacher */
+.card:has(.card-stars) .card-head { padding-top: 2.5cqw; }
 
 /* Carte non obtenue = silhouette */
-.card.missing { --rc: #34305c !important; cursor: pointer; }
-.card.missing .card-inner { background: #13112a; box-shadow: none; animation: none; }
-.card.missing .card-inner::after { display: none; }
+.card.missing { --rc: #34305c !important; --rc2: #1d1a3a !important; --lv: 0 !important; cursor: pointer; }
+.card.missing .card-inner { background: #13112a; box-shadow: none; border-color: #2a2650; }
+.card.missing .card-art { background: rgba(255,255,255,.03); border-color: #2a2650; }
 .card.missing .card-art img { filter: brightness(0) contrast(0.6); opacity: 0.55; }
 .card.missing .card-name { color: #4c4878; }
-.card.missing .card-rarity { color: #5a5690; }
+.card.missing .card-rarity { background: #24204a; color: #5a5690; }
 
 /* Grille */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 22px 18px; }
@@ -222,20 +228,40 @@ h1, h2, h3 { margin: 0; }
 .flip-inner { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(.3, 1.2, .4, 1); }
 .slot.flipped .flip-inner { transform: rotateY(180deg); }
 .slot.instant .flip-inner, .slot.instant .flip-front::after { transition: none !important; animation: none !important; }
+.flip-back { container-type: inline-size; }
 .flip-back, .flip-front { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .flip-front { transform: rotateY(180deg); }
 .flip-front .card:hover { transform: none; }
 .card-back {
-  width: 100%; height: 100%; border-radius: 12px; display: grid; place-items: center;
+  position: relative; width: 100%; height: 100%; overflow: hidden;
+  border-radius: 9cqw; display: grid; place-items: center;
   background:
-    repeating-linear-gradient(45deg, rgba(255,255,255,.04) 0 10px, transparent 10px 20px),
-    linear-gradient(160deg, #2a1f63, #120f2c);
-  border: 3px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    linear-gradient(165deg, rgba(255,255,255,.12), rgba(255,255,255,.02) 55%, rgba(255,255,255,.06)),
+    radial-gradient(circle at 18% 12%, rgba(255,60,172,.75) 0, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(123,92,255,.7) 0, transparent 55%),
+    radial-gradient(circle at 92% 96%, rgba(43,210,255,.7) 0, transparent 45%),
+    #141226;
+  border: 0.8cqw solid rgba(190,170,255,.55);
+  box-shadow: inset 0 0 10cqw rgba(123,92,255,.35), 0 0 6cqw rgba(123,92,255,.35), 0 10px 30px rgba(0,0,0,.5);
   transition: transform 0.2s;
 }
+/* Plaque de verre intérieure avec un fin quadrillage en losanges */
+.card-back::before { content: ""; position: absolute; inset: 4.5cqw; border-radius: 6.8cqw;
+  border: 0.4cqw solid rgba(255,255,255,.28);
+  background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.07) 0 0.4cqw, transparent 0.4cqw 7cqw),
+    repeating-linear-gradient(-45deg, rgba(255,255,255,.07) 0 0.4cqw, transparent 0.4cqw 7cqw),
+    linear-gradient(160deg, rgba(255,255,255,.16), rgba(255,255,255,.03)); }
+/* Reflet de lumière en diagonale */
+.card-back::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.18) 45%, transparent 55%); }
 .slot:not(.flipped):hover .card-back { transform: translateY(-6px) rotate(-1deg); }
-.cb-logo svg { width: 55%; max-width: 90px; opacity: 0.85; display: block; margin: auto; }
+/* Médaillon central en verre avec le logo */
+.cb-logo { position: relative; z-index: 1; width: 52cqw; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.28), rgba(255,255,255,.06) 60%), rgba(20,18,38,.35);
+  border: 0.6cqw solid rgba(255,255,255,.35);
+  box-shadow: 0 0 8cqw rgba(255,60,172,.45), inset 0 0 6cqw rgba(123,92,255,.4); }
+.cb-logo svg { width: 64%; height: auto; display: block; filter: drop-shadow(0 2cqw 3cqw rgba(0,0,0,.4)); }
 .pull-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; min-height: 48px; align-items: center; }
 
 /* Explosion de particules */
@@ -344,8 +370,6 @@ body.shake main { animation: shake 0.45s; }
 .stage.deal .slot:nth-child(4) { animation-delay: .18s; } .stage.deal .slot:nth-child(5) { animation-delay: .24s; }
 .stage .slot.gone { pointer-events: none; }
 .stage .card:hover { transform: none; }
-.stage .card-back { border-radius: 18px; }
-.stage .cb-logo svg { max-width: 120px; }
 .stack-ui { display: flex; flex-direction: column; align-items: center; text-align: center; max-width: 92vw; }
 .stack-nav { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
 .round-btn { width: 44px; height: 44px; border-radius: 50%; border: 0; cursor: pointer; font-size: 26px; line-height: 1; padding-bottom: 3px; background: rgba(255,255,255,.1); box-shadow: inset 0 0 0 1px var(--line); transition: background .2s, opacity .2s; }
@@ -487,7 +511,7 @@ body.shake main { animation: shake 0.45s; }
 
 /* Étoiles (en haut à gauche de l'image) */
 /* Étoiles : dans le coin supérieur gauche de la carte, en léger débordement */
-.card-stars { position: absolute; z-index: 3; left: -3.5cqw; top: -6.5cqw; pointer-events: none;
+.card-stars { position: absolute; z-index: 3; left: -3.5cqw; top: -8.5cqw; pointer-events: none;
   padding: .9cqw 3cqw 1.2cqw; border-radius: 99px; font-size: 10cqw; line-height: 1; letter-spacing: -.4cqw; white-space: nowrap;
   border: .8cqw solid transparent;
   background:

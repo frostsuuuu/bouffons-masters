@@ -64,7 +64,6 @@
           <span class="card-name">${hidden ? "???" : esc(card.nom)}</span>
         </div>
         <div class="card-art">${imgHTML(card)}</div>
-        ${o.big && !o.missing ? `<p class="card-desc">${esc(card.description)}</p>` : ""}
         <div class="card-foot">
           <span class="card-rarity">${esc(r.nom)}</span>
           ${st && !o.missing ? `<span class="card-stats"><b title="Attaque">⚔ ${st.atk}</b><b title="Défense">🛡 ${st.def}</b></span>` : ""}

@@ -241,17 +241,13 @@ BM.Game = (function () {
   function placeholder(c) {
     if (!c) return "";
     if (phCache[c.id]) return phCache[c.id];
-    const h = hash(c.id) % 360;
     const emoji = c.emoji || C.emojiParDefaut || "🧑";
+    // Illustration provisoire : l'emoji seul, sur fond transparent (le verre teinté de la carte se voit derrière)
     const svg =
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'>` +
-      `<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>` +
-      `<stop offset='0' stop-color='hsl(${h},65%,34%)'/><stop offset='1' stop-color='hsl(${(h + 70) % 360},70%,12%)'/>` +
-      `</linearGradient><radialGradient id='r'><stop offset='0' stop-color='rgba(255,255,255,.22)'/><stop offset='1' stop-color='rgba(255,255,255,0)'/></radialGradient></defs>` +
-      `<rect width='400' height='300' fill='url(#g)'/>` +
-      `<circle cx='200' cy='135' r='120' fill='url(#r)'/>` +
-      `<text x='200' y='172' font-size='110' text-anchor='middle'>${emoji}</text>` +
-      `<text x='200' y='278' font-size='17' fill='rgba(255,255,255,.4)' text-anchor='middle' font-family='sans-serif' letter-spacing='5'>IMAGE À VENIR</text>` +
+      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 360'>` +
+      `<defs><radialGradient id='r'><stop offset='0' stop-color='rgba(255,255,255,.28)'/><stop offset='1' stop-color='rgba(255,255,255,0)'/></radialGradient></defs>` +
+      `<circle cx='150' cy='175' r='130' fill='url(#r)'/>` +
+      `<text x='150' y='228' font-size='150' text-anchor='middle'>${emoji}</text>` +
       `</svg>`;
     return (phCache[c.id] = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg));
   }

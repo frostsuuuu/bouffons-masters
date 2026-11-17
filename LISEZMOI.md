@@ -43,7 +43,7 @@ bouffons-masters/
 
 ## Changer une image
 
-1. Mettez l'image dans le dossier `images/` (format paysage 4:3 idéal, ex. 800×600, en .jpg, .png ou .webp).
+1. Mettez l'image dans le dossier `images/` (format portrait idéal, ex. 800×1000, en .jpg, .png ou .webp : l'image remplit presque toute la carte).
 2. Dans `cards.js`, mettez son chemin dans la carte : `image: "images/tonton.jpg"`.
 3. Rechargez. Si le fichier est introuvable, l'illustration provisoire s'affiche à la place.
 
