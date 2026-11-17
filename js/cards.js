@@ -99,5 +99,13 @@ BM.CARDS = [
     image: "images/petit-nael-gilles-verdez.webp",
     rarete: "epique",
     attaque: 80, defense: 80
+  },
+  {
+    id: "cousin-baveux",
+    nom: "Cousin baveux",
+    image: "",
+    rarete: "legendaire",
+    attaque: 115, defense: 105,
+    emoji: "⚖️"
   }
 ];
