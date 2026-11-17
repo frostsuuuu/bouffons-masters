@@ -470,7 +470,7 @@ body.shake main { animation: shake 0.45s; }
 .pk-beam.on { opacity: .55; }
 
 /* Cartes qui sortent : aura de rareté visible de dos */
-.stage .slot.rising { transition: transform .85s cubic-bezier(.2,.85,.25,1), opacity .4s, filter .4s; }
+.stage .slot.rising { transition: transform .35s cubic-bezier(.2,.85,.25,1), opacity .4s, filter .4s; }
 .stage .slot .card-back { transition: box-shadow .6s, border-color .6s, transform .2s; }
 .stage .slot.aura .card-back { border-color: var(--rc);
   box-shadow: 0 0 16px 4px var(--rc), 0 0 46px 12px color-mix(in srgb, var(--rc) 55%, transparent), 0 10px 30px rgba(0,0,0,.5); }

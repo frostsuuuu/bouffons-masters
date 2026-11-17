@@ -238,7 +238,7 @@
     // 2. Le booster descend, les cartes montent (la meilleure — au fond — en premier)
     pack.classList.add("drop");
     slots.forEach((s) => (s.style.transition = ""));
-    const rise = 210;
+    const rise = 45; // écart entre chaque carte (ms) — rapide pour un simple aperçu des raretés
     for (let i = n - 1; i >= 0; i--) {
       const s = slots[i];
       const delay = (n - 1 - i) * rise;
@@ -248,7 +248,7 @@
         s.style.transform = `translateY(${24 - i * 9.5}%) rotate(${(i - (n - 1) / 2) * 1.2}deg)`;
       }, delay);
     }
-    await wait((n - 1) * rise + 1100); if (!alive()) return;
+    await wait((n - 1) * rise + 450); if (!alive()) return;
 
     // 3. Le booster s'en va, les cartes se rangent en pile (les auras s'éteignent)
     pack.classList.add("gone");
