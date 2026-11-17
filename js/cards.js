@@ -8,7 +8,7 @@
    id          : identifiant unique, sans espace ni accent (ne plus le changer ensuite !)
    nom         : nom affiché
    image       : chemin de l'image, ex. "images/kevin.jpg" — laisser "" pour l'illustration provisoire
-   rarete      : commune | peu_commune | rare | epique | legendaire
+   rarete      : commune | rare | epique | legendaire
    description : texte (affiché en entier sur la carte en grand)
    attaque / defense : nombres (facultatifs — supprimez la ligne si pas de stats)
    emoji       : (facultatif) illustration provisoire tant qu'il n'y a pas d'image
@@ -56,7 +56,7 @@ BM.CARDS = [
     id: "blagues-nulles",
     nom: "Le Roi des Blagues Nulles",
     image: "",
-    rarete: "peu_commune",
+    rarete: "rare",
     description: "Rit de ses propres blagues avant la chute. Il fallait être là. Vraiment.",
     attaque: 45, defense: 30,
     emoji: "🤡"
@@ -65,7 +65,7 @@ BM.CARDS = [
     id: "dj-autoproclame",
     nom: "Le DJ Autoproclamé",
     image: "",
-    rarete: "peu_commune",
+    rarete: "commune",
     description: "Prend l'enceinte Bluetooth en otage dès qu'elle s'allume.",
     attaque: 50, defense: 35,
     emoji: "🎧"

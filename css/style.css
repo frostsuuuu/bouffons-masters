@@ -141,7 +141,7 @@ h1, h2, h3 { margin: 0; }
    les textes s'adaptent automatiquement (unités cqw).
    ========================================================= */
 .card {
-  --rc: #a3aec2;
+  --rc: #3ee08f;
   position: relative; width: 100%; aspect-ratio: 5 / 7;
   container-type: inline-size;
   border-radius: 12px; cursor: pointer; user-select: none;
@@ -172,7 +172,6 @@ h1, h2, h3 { margin: 0; }
 .card-foot { display: flex; align-items: center; justify-content: space-between; gap: 2cqw; flex-shrink: 0; }
 .card-rarity { font-size: 4.4cqw; font-weight: 800; padding: 1.5cqw 4.2cqw; border-radius: 99px; white-space: nowrap;
   background: var(--rc); color: #0e0c1d; }
-.card.r-commune .card-rarity { background: #d3d9e6; }
 .card-stats { display: flex; gap: 3.5cqw; font-size: 5.3cqw; font-weight: 700; color: #fff; }
 .card-stats b { white-space: nowrap; font-weight: 700; }
 .card-count, .card-new {
@@ -183,8 +182,7 @@ h1, h2, h3 { margin: 0; }
 .card-new { top: -8px; left: 50%; transform: translateX(-50%); background: var(--pink); color: #fff; box-shadow: 0 0 14px var(--pink); letter-spacing: 1px; animation: pop 0.5s 0.4s both; }
 
 /* Raretés : 2e couleur des halos et intensité de la lueur (--lv) */
-.card.r-commune     { --rc2: #6b7486; --lv: 1; }
-.card.r-peu_commune { --rc2: #0f8a52; --lv: 2; }
+.card.r-commune     { --rc2: #0f8a52; --lv: 1; }
 .card.r-rare        { --rc2: #1450b8; --lv: 3; }
 .card.r-epique      { --rc2: #5b17a8; --lv: 4; }
 .card.r-legendaire  { --rc2: #d0306a; --lv: 5; }

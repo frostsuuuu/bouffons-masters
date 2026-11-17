@@ -26,7 +26,7 @@ BM.CONFIG = {
 
   // La dernière carte de chaque booster est au moins de cette rareté.
   // Mettre null pour désactiver la garantie.
-  garantieDerniereCarte: "peu_commune",
+  garantieDerniereCarte: "rare",
 
   /* ---------- Raretés ----------
      "poids" = chance d'apparition. Ce ne sont pas forcément des %,
@@ -34,11 +34,10 @@ BM.CONFIG = {
      "couleur" = couleur du cadre ET de l'aura quand la carte sort du booster.
      L'ordre de la liste = de la plus commune à la plus rare. */
   raretes: [
-    { id: "commune",     nom: "Commune",     couleur: "#a3aec2", poids: 60 },
-    { id: "peu_commune", nom: "Peu commune", couleur: "#3ee08f", poids: 25 },
-    { id: "rare",        nom: "Rare",        couleur: "#3fa9ff", poids: 10 },
-    { id: "epique",      nom: "Épique",      couleur: "#c05cff", poids: 4 },
-    { id: "legendaire",  nom: "Légendaire",  couleur: "#ffa726", poids: 1 }
+    { id: "commune",     nom: "Commune",     couleur: "#3ee08f", poids: 70 },
+    { id: "rare",        nom: "Rare",        couleur: "#3fa9ff", poids: 22 },
+    { id: "epique",      nom: "Épique",      couleur: "#c05cff", poids: 6 },
+    { id: "legendaire",  nom: "Légendaire",  couleur: "#ffa726", poids: 2 }
   ],
 
   /* Toutes les cartes sont des personnages : pas de catégories. */
