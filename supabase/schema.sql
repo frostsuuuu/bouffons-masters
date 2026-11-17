@@ -325,3 +325,15 @@ grant execute on function public.bm_me(), public.my_player(), public.create_play
   public.login_player(text, text), public.set_password(text, text), public.logout_device(),
   public.add_cards(jsonb), public.fuse_card(text, int), public.propose_trade(uuid, jsonb, jsonb),
   public.accept_trade(uuid), public.close_trade(uuid) to authenticated;
+
+-- ---------- Liste d'amis d'un joueur (visible par tous les joueurs) ----------
+create or replace function public.player_friends(p_player uuid)
+returns table (id uuid, pseudo text, collection jsonb)
+language sql stable security definer set search_path = public as $$
+  select p.id, p.pseudo, p.collection
+  from public.friendships f join public.players p on p.id = f.friend_id
+  where f.user_id = p_player and public.bm_me() is not null
+  order by lower(p.pseudo);
+$$;
+revoke all on function public.player_friends(uuid) from public, anon;
+grant execute on function public.player_friends(uuid) to authenticated;
