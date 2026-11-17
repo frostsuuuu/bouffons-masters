@@ -106,6 +106,5 @@ BM.CARDS = [
     image: "image/cousin-baveux.jpg",
     rarete: "legendaire",
     attaque: 115, defense: 105,
-    emoji: "⚖️"
   }
 ];
