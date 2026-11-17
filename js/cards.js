@@ -129,5 +129,12 @@ BM.CARDS = [
     image: "images/evan-calvitie.jpg",
     rarete: "epique",
     attaque: 78, defense: 72
+  },
+  {
+    id: "seif",
+    nom: "Seif",
+    image: "images/seif.webp",
+    rarete: "rare",
+    attaque: 52, defense: 46
   }
 ];
