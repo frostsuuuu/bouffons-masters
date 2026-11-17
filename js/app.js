@@ -222,9 +222,30 @@
   }
 
   /* ---------- Ouverture : déchirure → cartes qui sortent → pile ---------- */
+  let asking = false; // demande d'ouverture en cours auprès du serveur
   async function openPack() {
-    if (pull || !$("#pack")) return; // déjà en cours d'ouverture
-    const res = G.openBooster();
+    if (pull || asking || !$("#pack")) return; // déjà en cours d'ouverture
+    let res;
+    if (BM.Online.configured() && G.state.account) {
+      // En ligne : c'est le serveur qui tire les cartes (anti-triche)
+      asking = true;
+      const btn = $("#mainBtn");
+      if (btn) { btn.disabled = true; btn.textContent = "Ouverture…"; }
+      try { res = G.applyServerBooster(await BM.Online.openBooster()); }
+      catch (e) {
+        asking = false;
+        toast(esc(e.message || e), "bad");
+        await BM.Online.refresh().catch(() => {});
+        updateChrome();
+        if (currentPage === "booster") renderBooster();
+        return;
+      }
+      asking = false;
+      if (!$("#pack") || currentPage !== "booster") { updateChrome(); return; } // page quittée entre-temps
+      if (btn) btn.disabled = false;
+    } else {
+      res = G.openBooster();
+    }
     if (!res) return renderBooster();
     const id = ++seq;
     const alive = () => id === seq && $("#stage");
@@ -1181,7 +1202,6 @@
   // Après chaque booster : envoi au serveur + statistiques
   function afterBooster() {
     if (!BM.Online.configured()) return;
-    BM.Online.flush().catch(() => toast("Cartes gardées en attente : connexion au serveur impossible.", "bad"));
     BM.Online.pushStats(G.state.stats);
   }
 

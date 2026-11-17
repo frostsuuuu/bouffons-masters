@@ -33,6 +33,8 @@ BM.Online = (function () {
     NON_AUTORISE: "Action non autorisée.",
     JOUEUR_INTROUVABLE: "Joueur introuvable.",
     TIMEOUT: "Le serveur ne répond pas. Vérifie ta connexion.",
+    PLUS_DE_BOOSTER: "Plus de booster pour l'instant : attends la recharge.",
+    CATALOGUE_VIDE: "Les cartes ne sont pas encore prêtes sur le serveur. Réessaie dans un instant.",
     IDENTIFIANTS: "Pseudo ou mot de passe incorrect.",
     TROP_DE_TENTATIVES: "Trop d'essais ratés. Réessaie dans 15 minutes.",
     MDP_LONGUEUR: "Le mot de passe doit faire au moins 6 caractères.",
@@ -81,6 +83,7 @@ BM.Online = (function () {
       user = data && data.session ? data.session.user : null;
       player = user ? await q(sb.rpc("my_player")) : null;
       status = "online";
+      await adminSync();
     } catch (e) {
       console.warn("[Bouffons Masters] serveur injoignable :", e);
       status = "offline";
@@ -100,6 +103,7 @@ BM.Online = (function () {
     const res = await q(sb.rpc("login_player", { p_pseudo: pseudo, p_password: password }));
     if (!res || !res.ok) throw err((res && res.error) || "IDENTIFIANTS");
     player = res.player;
+    await adminSync();
     return player;
   }
 
@@ -133,23 +137,37 @@ BM.Online = (function () {
     return player;
   }
 
+  /* ---------- Boosters (tirés par le serveur : impossible de tricher) ---------- */
+  // Les admins (créateurs du jeu) recopient la liste des cartes et les réglages des boosters
+  // sur le serveur à chaque ouverture du jeu : modifier cards.js / config.js suffit toujours.
+  async function adminSync() {
+    if (!player || !player.is_admin) return;
+    const C = BM.CONFIG;
+    try {
+      await q(sb.rpc("sync_catalog", {
+        p_cards: BM.CARDS.map((c) => ({ id: c.id, rarete: c.rarete })),
+        p_settings: {
+          cards_per_booster: C.cartesParBooster, recharge_minutes: C.rechargeMinutes,
+          boosters_max: C.boostersMax, boosters_start: C.boostersDepart ?? 5,
+          guarantee: C.garantieDerniereCarte || null,
+          rarities: C.raretes.map((r) => ({ id: r.id, poids: r.poids })), test_mode: !!C.modeTest
+        }
+      }));
+    } catch (e) { console.warn("[Bouffons Masters] synchro du catalogue impossible :", e); }
+  }
+  // Ouvre un booster : le serveur vérifie le stock, tire les cartes et les ajoute à la collection
+  async function openBooster() {
+    await ready();
+    if (!player) throw err("PAS_DE_COMPTE");
+    return q(sb.rpc("open_booster"));
+  }
+
   /* ---------- Ma collection ---------- */
-  // Envoie les cartes de booster en attente (par paquets de 10)
+  // Ancien système (cartes envoyées par le jeu) : supprimé. On vide juste l'éventuelle file d'attente.
   function flush() {
-    if (!player || status !== "online") return Promise.resolve();
-    if (flushing) return flushing;
-    const run = (async () => {
-      let batch;
-      while ((batch = BM.Game.takePending(10)).length) {
-        const coll = await q(sb.rpc("add_cards", { items: batch.map((p) => ({ card: p.card, level: p.level })) }));
-        BM.Game.dropPending(batch);
-        BM.Game.setCollection(coll);
-      }
-    })();
-    flushing = run;
-    const clear = () => { if (flushing === run) flushing = null; };
-    run.then(clear, clear);
-    return run;
+    const old = BM.Game.takePending(1000);
+    if (old.length) BM.Game.dropPending(old);
+    return Promise.resolve();
   }
 
   async function fuse(card, level) {
@@ -279,7 +297,7 @@ BM.Online = (function () {
   }
 
   return {
-    configured, init, ready, signup, flush, fuse, setVitrine, pushStats, refresh,
+    configured, init, ready, signup, flush, openBooster, fuse, setVitrine, pushStats, refresh,
     findByPseudo, getPlayer, social, addFriend, removeFriend, isFriend, playerFriends, myFriendIds,
     trades, proposeTrade, acceptTrade, closeTrade,
     get status() { return status; },

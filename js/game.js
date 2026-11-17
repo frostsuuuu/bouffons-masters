@@ -169,13 +169,35 @@ BM.Game = (function () {
     const results = pulled.map((c) => {
       const isNew = !owned(c.id);
       addCopy(c.id, 1);
-      if (BM.Online && BM.Online.configured()) state.pending.push({ card: c.id, level: 1, k: Math.random().toString(36).slice(2) });
       return { card: c, isNew };
     });
     state.stats.boosters++;
     state.stats.cartes += n;
     save();
     return results;
+  }
+
+  // Booster ouvert par le serveur : { cards: [ids], collection, bstock, blast }
+  function applyServerBooster(r) {
+    const results = (r.cards || []).map((id) => {
+      const c = card(id);
+      if (!c) return null;
+      const isNew = !owned(id);
+      addCopy(id, 1);
+      return { card: c, isNew };
+    }).filter(Boolean);
+    setServerBoosters(r);
+    state.stats.boosters++;
+    state.stats.cartes += results.length;
+    setCollection(r.collection);
+    return results.length ? results : null;
+  }
+  // Stock de boosters compté par le serveur (même calcul de recharge que dans le jeu)
+  function setServerBoosters(row) {
+    if (row && row.bstock != null) {
+      const last = Date.parse(row.blast);
+      state.boosters = { stock: row.bstock, last: isNaN(last) ? Date.now() : last };
+    }
   }
 
   /* ---------- Synchronisation avec le serveur ---------- */
@@ -191,6 +213,8 @@ BM.Game = (function () {
     state.account = { id: row.id, pseudo: row.pseudo, createdAt: Date.parse(row.created_at) || Date.now(), online: true };
     state.createdAt = state.account.createdAt;
     state.vitrine = Array.isArray(row.vitrine) ? row.vitrine : [];
+    state.pending = []; // les cartes viennent maintenant toutes du serveur
+    setServerBoosters(row);
     setCollection(row.collection);
   }
   function clearAccount() {
@@ -260,7 +284,7 @@ BM.Game = (function () {
     unlimited: () => CAP() === Infinity,
     card, rarity, rarityIndex, availableRarities, dropRates,
     copies, owned, levels, bestLevel, uniqueOwned, totalCopies, statsAt,
-    boostersLeft, openBooster, msUntilNext,
+    boostersLeft, openBooster, applyServerBooster, msUntilNext,
     canFuse, fuse, fusables,
     placeholder,
     get state() { return state; }
