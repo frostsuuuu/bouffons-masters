@@ -1150,7 +1150,7 @@
           ${own && lv > 1 ? `<span class="badge gold">${stars(lv)}</span>` : ""}
         </div>
         ${other ? `<p class="muted small">Carte de <b>${esc(other.pseudo)}</b></p>` : ""}
-        ${own ? `<p class="desc">${esc(card.description)}</p>` : `<p class="desc muted">${other ? "Ce joueur n'a pas cette carte." : "Tu n'as pas encore cette carte. Ouvre des boosters pour la découvrir !"}</p>`}
+        ${own ? "" : `<p class="desc muted">${other ? "Ce joueur n'a pas cette carte." : "Tu n'as pas encore cette carte. Ouvre des boosters pour la découvrir !"}</p>`}
         <dl class="facts">
           <div><dt>Taux de la rareté</dt><dd>${rate != null ? rate.toFixed(1) + " %" : "—"}</dd></div>
           ${st && own ? `<div><dt>Attaque</dt><dd>⚔ ${st.atk}${lv > 1 ? ` <small>(base ${base.atk})</small>` : ""}</dd></div>

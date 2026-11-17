@@ -33,7 +33,6 @@ bouffons-masters/
   nom: "Tonton Bricoleur",
   image: "images/tonton.jpg",     // ou "" pour l'illustration provisoire
   rarete: "rare",                 // commune | rare | epique | legendaire
-  description: "A tout réparé avec du scotch. Même la voiture.",
   attaque: 60, defense: 40,       // facultatif
   emoji: "🔧"                     // facultatif : illustration tant qu'il n'y a pas d'image
 },
