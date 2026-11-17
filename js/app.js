@@ -184,7 +184,7 @@
           <div class="dots">${Array.from({ length: n }, (_, i) => `<i data-dot="${i}"></i>`).join("")}</div>
           <button class="round-btn" id="nextBtn" aria-label="Carte suivante">›</button>
         </div>
-        <button class="btn btn-primary btn-wide" id="mainBtn">${idle ? "🎁 Ouvrir le booster" : ""}</button>
+        <button class="btn btn-primary btn-wide" id="mainBtn">${idle ? '<i class="ico-pack" aria-hidden="true"></i>Ouvrir le booster' : ""}</button>
         <p class="muted small hint-text">${idle ? "Touche le booster ou le bouton pour l'ouvrir" : C.retournementAuto ? "Touche la carte pour la voir en grand · flèche ou bouton pour passer à la suivante" : "Touche la carte pour la retourner, puis pour la voir en grand · flèche ou bouton pour passer à la suivante"}</p>
       </div>`;
   }
@@ -505,7 +505,7 @@
         ${pull.results.map((x, i) => `<div class="recap-item" style="--d:${i * 0.07}s">${cardHTML(x.card, { isNew: x.isNew })}</div>`).join("")}
       </div>
       <div class="pull-actions">
-        ${left > 0 ? `<button class="btn btn-primary" id="again">🎁 Booster suivant (${leftLabel(left)})</button>`
+        ${left > 0 ? `<button class="btn btn-primary" id="again"><i class="ico-pack" aria-hidden="true"></i>Booster suivant (${leftLabel(left)})</button>`
           : `<span class="muted">Prochain booster dans <b data-countdown>${clock(G.msUntilNext())}</b></span>`}
         <a class="btn" href="#collection">Voir ma collection</a>
       </div>
@@ -618,7 +618,7 @@
         </div>`).join("")}</div>
       <div class="fuse-all-bar"><button class="btn btn-primary btn-wide" id="fuseAll">⚗️ Tout fusionner</button>
         <p class="muted small">Fusionne d'un coup toutes les paires possibles, étoile après étoile, jusqu'à ce qu'il n'en reste plus.</p></div>`
-        : `<div class="empty">Aucune fusion possible pour l'instant.<br>Il te faut 2 exemplaires d'une même carte avec le même nombre d'étoiles.<br><br><a class="btn btn-primary" href="#booster">🎁 Ouvrir un booster</a></div>`}
+        : `<div class="empty">Aucune fusion possible pour l'instant.<br>Il te faut 2 exemplaires d'une même carte avec le même nombre d'étoiles.<br><br><a class="btn btn-primary" href="#booster"><i class="ico-pack" aria-hidden="true"></i>Ouvrir un booster</a></div>`}
     </section>`;
     $$("[data-fuse]").forEach((b) => b.addEventListener("click", () => doFuse(b.dataset.fuse, +b.dataset.lv)));
     const fa = $("#fuseAll");
