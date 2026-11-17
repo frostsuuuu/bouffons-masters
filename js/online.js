@@ -33,6 +33,10 @@ BM.Online = (function () {
     NON_AUTORISE: "Action non autorisée.",
     JOUEUR_INTROUVABLE: "Joueur introuvable.",
     TIMEOUT: "Le serveur ne répond pas. Vérifie ta connexion.",
+    IDENTIFIANTS: "Pseudo ou mot de passe incorrect.",
+    TROP_DE_TENTATIVES: "Trop d'essais ratés. Réessaie dans 15 minutes.",
+    MDP_LONGUEUR: "Le mot de passe doit faire au moins 6 caractères.",
+    MDP_ACTUEL: "Mot de passe actuel incorrect.",
     ANONYMOUS: "Les connexions anonymes sont désactivées dans Supabase (voir le guide).",
     LIB: "Impossible de charger la connexion au serveur."
   };
@@ -75,7 +79,7 @@ BM.Online = (function () {
       sb = sb || window.supabase.createClient(cfg.url, cfg.cle);
       const { data } = await timeout(sb.auth.getSession());
       user = data && data.session ? data.session.user : null;
-      player = user ? await q(sb.from("players").select("*").eq("id", user.id).maybeSingle()) : null;
+      player = user ? await q(sb.rpc("my_player")) : null;
       status = "online";
     } catch (e) {
       console.warn("[Bouffons Masters] serveur injoignable :", e);
@@ -88,6 +92,32 @@ BM.Online = (function () {
     if (status !== "online") throw err("TIMEOUT");
   }
 
+  const myId = () => (player ? player.id : null);
+
+  // Se connecter à un compte existant (pseudo + mot de passe) depuis ce navigateur
+  async function login(pseudo, password) {
+    await ensureUser();
+    const res = await q(sb.rpc("login_player", { p_pseudo: pseudo, p_password: password }));
+    if (!res || !res.ok) throw err((res && res.error) || "IDENTIFIANTS");
+    player = res.player;
+    return player;
+  }
+
+  // Choisir (compte sans mot de passe) ou changer son mot de passe
+  async function setPassword(newPw, oldPw) {
+    await ready();
+    await q(sb.rpc("set_password", { p_new: newPw, p_old: oldPw || null }));
+    if (player) player.has_password = true;
+  }
+
+  // Se déconnecter de ce navigateur (le compte reste intact sur le serveur)
+  async function logout() {
+    await ready();
+    try { await q(sb.rpc("logout_device")); } catch (e) { /* on se déconnecte quand même */ }
+    try { await sb.auth.signOut(); } catch (e) {}
+    player = null; user = null; incoming = 0;
+  }
+
   // Connexion anonyme (une par navigateur) : nécessaire avant toute lecture
   async function ensureUser() {
     await ready();
@@ -97,9 +127,9 @@ BM.Online = (function () {
     return (user = res.data.user);
   }
 
-  async function signup(pseudo) {
+  async function signup(pseudo, password) {
     await ensureUser();
-    player = await q(sb.rpc("create_player", { p_pseudo: pseudo }));
+    player = await q(sb.rpc("create_player", { p_pseudo: pseudo, p_password: password }));
     return player;
   }
 
@@ -150,11 +180,11 @@ BM.Online = (function () {
     if (status !== "online") { await init(); if (status !== "online") return false; }
     if (!user) return false;
     await flush().catch(() => {});
-    const row = await q(sb.from("players").select("*").eq("id", user.id).maybeSingle());
+    const row = await q(sb.rpc("my_player"));
     if (!row) return false;
     player = row;
     BM.Game.applyPlayer(row);
-    const t = await q(sb.from("trades").select("id").eq("to_id", user.id).eq("status", "pending"));
+    const t = await q(sb.from("trades").select("id").eq("to_id", row.id).eq("status", "pending"));
     incoming = (t || []).length;
     return true;
   }
@@ -182,8 +212,8 @@ BM.Online = (function () {
   async function social() {
     await ready();
     const rows = await q(sb.from("friendships").select("user_id,friend_id,created_at"));
-    const mine = rows.filter((r) => r.user_id === user.id).map((r) => r.friend_id);
-    const theirs = rows.filter((r) => r.friend_id === user.id).map((r) => r.user_id).filter((id) => !mine.includes(id));
+    const mine = rows.filter((r) => r.user_id === myId()).map((r) => r.friend_id);
+    const theirs = rows.filter((r) => r.friend_id === myId()).map((r) => r.user_id).filter((id) => !mine.includes(id));
     const players = await getPlayers([...new Set([...mine, ...theirs])]);
     const byId = Object.fromEntries(players.map((p) => [p.id, p]));
     return {
@@ -193,16 +223,16 @@ BM.Online = (function () {
   }
   async function addFriend(id) {
     await ready();
-    try { await q(sb.from("friendships").insert({ user_id: user.id, friend_id: id })); }
+    try { await q(sb.from("friendships").insert({ user_id: myId(), friend_id: id })); }
     catch (e) { if (!/duplicate|23505/i.test(e.message)) throw e; }
   }
   async function removeFriend(id) {
     await ready();
-    await q(sb.from("friendships").delete().eq("user_id", user.id).eq("friend_id", id));
+    await q(sb.from("friendships").delete().eq("user_id", myId()).eq("friend_id", id));
   }
   async function isFriend(id) {
     await ready();
-    const rows = await q(sb.from("friendships").select("friend_id").eq("user_id", user.id).eq("friend_id", id));
+    const rows = await q(sb.from("friendships").select("friend_id").eq("user_id", myId()).eq("friend_id", id));
     return (rows || []).length > 0;
   }
 
@@ -213,11 +243,11 @@ BM.Online = (function () {
     const ids = [...new Set(rows.flatMap((t) => [t.from_id, t.to_id]))];
     const ps = ids.length ? await q(sb.from("players").select("id,pseudo").in("id", ids)) : [];
     const names = Object.fromEntries(ps.map((p) => [p.id, p.pseudo]));
-    incoming = rows.filter((t) => t.to_id === user.id && t.status === "pending").length;
+    incoming = rows.filter((t) => t.to_id === myId() && t.status === "pending").length;
     return rows.map((t) => Object.assign({}, t, {
-      mine: t.from_id === user.id,
-      otherId: t.from_id === user.id ? t.to_id : t.from_id,
-      otherPseudo: names[t.from_id === user.id ? t.to_id : t.from_id] || "?"
+      mine: t.from_id === myId(),
+      otherId: t.from_id === myId() ? t.to_id : t.from_id,
+      otherPseudo: names[t.from_id === myId() ? t.to_id : t.from_id] || "?"
     }));
   }
   async function proposeTrade(toId, offer, request) {
@@ -244,7 +274,9 @@ BM.Online = (function () {
     trades, proposeTrade, acceptTrade, closeTrade,
     get status() { return status; },
     get player() { return player; },
-    get me() { return user ? user.id : null; },
+    get me() { return myId(); },
+    get hasPassword() { return !!(player && player.has_password); },
+    login, setPassword, logout,
     get incoming() { return incoming; },
     isOn: () => status === "online" && !!player
   };

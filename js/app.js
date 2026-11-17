@@ -23,7 +23,7 @@
   const stars = (level) => {
     const t = starTier(level);
     if (t.n <= 0) return "";
-    return t.rainbow ? `<span class="stars-rainbow">${"★".repeat(t.n)}</span>` : "★".repeat(t.n);
+    return `<span class="${t.rainbow ? "stars-rainbow" : "stars-gold"}">${"★".repeat(t.n)}</span>`;
   };
   const starsText = (level) => {
     const t = starTier(level);
@@ -63,13 +63,14 @@
         <div class="card-head">
           <span class="card-name">${hidden ? "???" : esc(card.nom)}</span>
         </div>
-        <div class="card-art">${imgHTML(card)}${lvl > 1 && !o.missing ? `<span class="card-stars">${stars(lvl)}</span>` : ""}</div>
+        <div class="card-art">${imgHTML(card)}</div>
         ${o.big && !o.missing ? `<p class="card-desc">${esc(card.description)}</p>` : ""}
         <div class="card-foot">
           <span class="card-rarity">${esc(r.nom)}</span>
           ${st && !o.missing ? `<span class="card-stats"><b title="Attaque">⚔ ${st.atk}</b><b title="Défense">🛡 ${st.def}</b></span>` : ""}
         </div>
       </div>
+      ${lvl > 1 && !o.missing ? `<span class="card-stars ${starTier(lvl).rainbow ? "is-rainbow" : "is-gold"}">${stars(lvl)}</span>` : ""}
       ${o.count > 1 ? `<span class="card-count">×${o.count}</span>` : ""}
       ${o.isNew ? `<span class="card-new">NOUVEAU</span>` : ""}
     </div>`;
@@ -613,6 +614,8 @@
     const online = BM.Online.configured();
     const gained = new Set();
     let n = 0, error = null;
+    const before = {};          // collection avant, pour montrer ce qui a changé
+    BM.CARDS.forEach((c) => (before[c.id] = Object.assign({}, G.levels(c.id))));
     const refused = new Set(); // fusions refusées (ex. par le serveur) : on les saute et on continue avec les autres
     for (let guard = 0; guard < 1000; guard++) {
       const next = G.fusables().find((x) => !refused.has(x.card.id + ":" + x.level));
@@ -631,13 +634,39 @@
     if (online && n) BM.Online.pushStats(G.state.stats);
     if (n) {
       flash("#b06bff", 0.6);
-      toast(`⚗️ <b>${n}</b> fusion${n > 1 ? "s" : ""} : ${gained.size} carte${gained.size > 1 ? "s ont" : " a"} gagné des étoiles !`);
+      showFuseRecap(n, gained, before);
     }
     if (error) toast(`${refused.size} fusion${refused.size > 1 ? "s" : ""} refusée${refused.size > 1 ? "s" : ""} : ${esc(error.message)}`, "bad");
     else if (!n) toast("Fusion impossible", "bad");
     updateChrome();
     render();
   }
+  // Aperçu après « Tout fusionner » : les cartes obtenues et leurs étoiles
+  function showFuseRecap(n, gained, before) {
+    const items = [];
+    gained.forEach((id) => {
+      const card = G.card(id), after = G.levels(id);
+      Object.keys(after).map(Number).filter((l) => l > 1).forEach((l) => {
+        const diff = (after[l] || 0) - ((before[id] || {})[l] || 0);
+        if (diff > 0) items.push({ card, level: l, count: diff });
+      });
+    });
+    items.sort((a, b) => b.level - a.level || G.rarityIndex(b.card.rarete) - G.rarityIndex(a.card.rarete) || a.card.nom.localeCompare(b.card.nom));
+    BM.UI.openModal(`
+      <div class="fuse-recap">
+        <h2>⚗️ ${n} fusion${n > 1 ? "s" : ""} réalisée${n > 1 ? "s" : ""} !</h2>
+        <p class="muted small">${items.length ? "Voici les cartes que tu as obtenues :" : "Tes cartes ont gagné des étoiles."}</p>
+        <div class="grid recap-grid">${items.map((x) => `
+          <div class="recap-cell">
+            ${cardHTML(x.card, { level: x.level, count: x.count })}
+            <p class="recap-label">${stars(x.level)}<br><small>${starsText(x.level)}${x.count > 1 ? ` · ×${x.count}` : ""}</small></p>
+          </div>`).join("")}</div>
+        <div class="row"><button class="btn btn-primary" data-close-recap>Super !</button></div>
+      </div>`);
+    $("[data-close-recap]").addEventListener("click", closeModal);
+    $$(".recap-cell .card").forEach((el) => el.addEventListener("click", () => openCardModal(el.dataset.card)));
+  }
+
   async function doFuse(id, level) {
     const card = G.card(id);
     if (fusing) return;
@@ -735,7 +764,14 @@
           : `<p class="muted">Aucune carte pour l'instant. <a href="#booster">Ouvre ton premier booster !</a></p>`}
       </div>
 
-      ${BM.Online.configured() ? `<p class="muted small center">Compte en ligne · ton pseudo et ta collection sont enregistrés sur le serveur.</p>` : `
+      ${BM.Online.configured() ? `
+      <div class="panel account-zone">
+        <div><h2>Mon compte</h2><p class="muted small">Connecte-toi sur n'importe quel appareil avec ton pseudo et ton mot de passe.</p></div>
+        <div class="account-actions">
+          <button class="btn btn-sm" id="chgPwBtn">🔒 Changer de mot de passe</button>
+          <button class="btn btn-sm" id="logoutBtn">Se déconnecter</button>
+        </div>
+      </div>` : `
       <div class="panel danger-zone">
         <div><h2>Supprimer mon compte</h2><p class="muted small">Efface ton compte, ta collection et tes statistiques sur ce navigateur.</p></div>
         <button class="btn btn-danger btn-sm" id="resetBtn">Supprimer</button>
@@ -746,6 +782,9 @@
     $$(".vitrine .v-empty, #editVitrine").forEach((el) => el.addEventListener("click", openVitrinePicker));
     const rb = $("#resetBtn");
     if (rb) rb.addEventListener("click", confirmReset);
+    const cp = $("#chgPwBtn"), lo = $("#logoutBtn");
+    if (cp) cp.addEventListener("click", openChangePassword);
+    if (lo) lo.addEventListener("click", confirmLogout);
   }
 
   /* ---------- Vitrine ---------- */
@@ -810,86 +849,232 @@
   }
 
   /* =========================================================
-     CRÉATION DE COMPTE (premier lancement)
+     COMPTE : création (pseudo + mot de passe) ou connexion
      ========================================================= */
-  function showOnboarding() {
+  function closeOnboarding(box, msg) {
+    box.classList.add("out");
+    document.body.classList.remove("no-scroll");
+    setTimeout(() => box.remove(), 400);
+    if (msg) toast(msg);
+    render();
+  }
+
+  function showOnboarding(startTab) {
     if (G.hasAccount() || $("#onboard")) return;
+    const online = BM.Online.configured();
     const box = document.createElement("div");
     box.className = "onboard";
     box.id = "onboard";
     document.body.appendChild(box);
     document.body.classList.add("no-scroll");
+    const shake = (el) => { el.classList.add("shake-x"); setTimeout(() => el.classList.remove("shake-x"), 400); };
+    const pwField = (id, label, auto) => `
+      <label for="${id}">${label}</label>
+      <div class="pw-wrap">
+        <input id="${id}" type="password" maxlength="72" autocomplete="${auto}" placeholder="6 caractères minimum">
+        <button type="button" class="pw-eye" data-eye="${id}" aria-label="Afficher le mot de passe">👁</button>
+      </div>`;
+    const bindEyes = () => $$("[data-eye]", box).forEach((b) => b.addEventListener("click", () => {
+      const i = $("#" + b.dataset.eye); i.type = i.type === "password" ? "text" : "password";
+    }));
+    const tabs = (active) => online ? `
+      <div class="ob-tabs">
+        <button type="button" class="ob-tab ${active === "create" ? "on" : ""}" data-tab="create">Créer un compte</button>
+        <button type="button" class="ob-tab ${active === "login" ? "on" : ""}" data-tab="login">J'ai déjà un compte</button>
+      </div>` : "";
+    const bindTabs = (vals) => $$("[data-tab]", box).forEach((b) => b.addEventListener("click", () =>
+      b.dataset.tab === "login" ? login(vals()) : create(vals())));
 
-    const step1 = (value = "") => {
+    // ---------- Créer un compte ----------
+    const create = (v = {}) => {
       box.innerHTML = `
-        <form class="onboard-card" id="obForm" autocomplete="off">
+        <form class="onboard-card" id="obForm" autocomplete="on">
           <div class="ob-logo">${LOGO}</div>
           <h1>Bienvenue dans <span>Bouffons Masters</span></h1>
-          <p class="muted">Crée ton compte pour commencer ta collection.</p>
+          ${tabs("create")}
           <label for="obPseudo">Choisis ton pseudo</label>
-          <input id="obPseudo" maxlength="${C.pseudo.max}" value="${esc(value)}" placeholder="Ton pseudo" spellcheck="false" autocapitalize="off">
-          <div class="ob-meta"><span class="ob-error" id="obErr"></span><span id="obCount">0 / ${C.pseudo.max}</span></div>
-          <p class="ob-warn">⚠️ Ton pseudo est <b>définitif</b> : tu ne pourras pas le changer ensuite.</p>
+          <input id="obPseudo" name="username" autocomplete="username" maxlength="${C.pseudo.max}" value="${esc(v.pseudo || "")}" placeholder="Ton pseudo" spellcheck="false" autocapitalize="off">
+          <div class="ob-meta"><span></span><span id="obCount">0 / ${C.pseudo.max}</span></div>
+          ${online ? pwField("obPw", "Choisis un mot de passe", "new-password") + pwField("obPw2", "Retape ton mot de passe", "new-password") : ""}
+          <p class="ob-error" id="obErr"></p>
+          <p class="ob-warn">⚠️ Ton pseudo est <b>définitif</b>.${online ? " Retiens bien ton mot de passe : il te servira à retrouver ton compte sur un autre appareil." : ""}</p>
           <button class="btn btn-primary btn-wide" type="submit">Créer mon compte</button>
         </form>`;
       const input = $("#obPseudo"), err = $("#obErr"), count = $("#obCount");
       const upd = () => { count.textContent = `${input.value.length} / ${C.pseudo.max}`; err.textContent = ""; };
       input.addEventListener("input", upd); upd();
+      bindEyes();
+      bindTabs(() => ({ pseudo: input.value }));
       setTimeout(() => input.focus(), 50);
       $("#obForm").addEventListener("submit", async (e) => {
         e.preventDefault();
-        const v = G.checkPseudo(input.value);
-        if (!v.ok) { err.textContent = v.error; input.classList.add("shake-x"); setTimeout(() => input.classList.remove("shake-x"), 400); return; }
-        if (BM.Online.configured()) {
+        const vp = G.checkPseudo(input.value);
+        if (!vp.ok) { err.textContent = vp.error; return shake(input); }
+        let pw = "";
+        if (online) {
+          pw = $("#obPw").value;
+          if (pw.length < 6) { err.textContent = "Le mot de passe doit faire au moins 6 caractères."; return shake($("#obPw")); }
+          if (pw !== $("#obPw2").value) { err.textContent = "Les deux mots de passe ne sont pas identiques."; return shake($("#obPw2")); }
           const btn = $("#obForm button[type=submit]");
           btn.disabled = true; btn.textContent = "Vérification…";
           try {
-            const taken = await BM.Online.findByPseudo(v.pseudo);
-            if (taken) throw new Error("Ce pseudo est déjà pris, choisis-en un autre.");
+            const taken = await BM.Online.findByPseudo(vp.pseudo);
+            if (taken) throw new Error("Ce pseudo est déjà pris. Si c'est le tien, clique sur « J'ai déjà un compte ».");
           } catch (x) {
             btn.disabled = false; btn.textContent = "Créer mon compte";
             err.textContent = x.message; return;
           }
         }
-        step2(v.pseudo);
+        confirmCreate(vp.pseudo, pw);
       });
     };
 
-    const step2 = (pseudo) => {
+    const confirmCreate = (pseudo, pw) => {
       box.innerHTML = `
         <div class="onboard-card">
           <div class="ob-logo">${LOGO}</div>
           <p class="muted">Ton pseudo sera</p>
           <p class="ob-pseudo">${esc(pseudo)}</p>
           <p class="ob-warn">Il est définitif. Tu confirmes ?</p>
+          <p class="ob-error" id="obErr"></p>
           <div class="row">
             <button class="btn" id="obBack">Modifier</button>
             <button class="btn btn-primary" id="obOk">C'est parti !</button>
           </div>
         </div>`;
-      $("#obBack").addEventListener("click", () => step1(pseudo));
+      $("#obBack").addEventListener("click", () => create({ pseudo }));
       $("#obOk").addEventListener("click", async () => {
-        if (BM.Online.configured()) {
+        if (online) {
           const ok = $("#obOk");
           ok.disabled = true; ok.textContent = "Création…";
           try {
-            const row = await BM.Online.signup(pseudo);
+            const row = await BM.Online.signup(pseudo, pw);
             G.applyPlayer(row);
             await BM.Online.flush().catch(() => {});
           } catch (x) {
-            step1(pseudo);
+            create({ pseudo });
             $("#obErr").textContent = x.message;
             return;
           }
-        } else if (!G.createAccount(pseudo)) return step1(pseudo);
-        box.classList.add("out");
-        document.body.classList.remove("no-scroll");
-        setTimeout(() => box.remove(), 400);
-        toast(`Compte créé · bienvenue <b>${esc(pseudo)}</b> !`);
-        render();
+        } else if (!G.createAccount(pseudo)) return create({ pseudo });
+        closeOnboarding(box, `Compte créé · bienvenue <b>${esc(pseudo)}</b> !`);
       });
     };
-    step1();
+
+    // ---------- Se connecter ----------
+    const login = (v = {}) => {
+      box.innerHTML = `
+        <form class="onboard-card" id="obForm" autocomplete="on">
+          <div class="ob-logo">${LOGO}</div>
+          <h1>Bon retour dans <span>Bouffons Masters</span></h1>
+          ${tabs("login")}
+          <label for="obPseudo">Ton pseudo</label>
+          <input id="obPseudo" name="username" autocomplete="username" maxlength="${C.pseudo.max}" value="${esc(v.pseudo || "")}" placeholder="Ton pseudo" spellcheck="false" autocapitalize="off">
+          ${pwField("obPw", "Ton mot de passe", "current-password")}
+          <p class="ob-error" id="obErr"></p>
+          <button class="btn btn-primary btn-wide" type="submit">Se connecter</button>
+          <p class="muted small ob-hint">Tu as créé ton compte avant les mots de passe ? Ouvre le jeu sur ton appareil habituel : il te demandera d'en choisir un.</p>
+        </form>`;
+      const input = $("#obPseudo"), err = $("#obErr");
+      bindEyes();
+      bindTabs(() => ({ pseudo: input.value }));
+      setTimeout(() => (input.value ? $("#obPw") : input).focus(), 50);
+      $("#obForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!input.value.trim()) { err.textContent = "Entre ton pseudo."; return shake(input); }
+        const btn = $("#obForm button[type=submit]");
+        btn.disabled = true; btn.textContent = "Connexion…";
+        try {
+          const row = await BM.Online.login(input.value, $("#obPw").value);
+          G.clearAccount();           // on oublie ce qui était sur ce navigateur
+          G.applyPlayer(row);
+          await BM.Online.refresh().catch(() => {});
+          closeOnboarding(box, `Connecté · content de te revoir <b>${esc(row.pseudo)}</b> !`);
+        } catch (x) {
+          btn.disabled = false; btn.textContent = "Se connecter";
+          err.textContent = x.message;
+          shake($("#obPw"));
+        }
+      });
+    };
+
+    (online && startTab === "login") ? login() : create();
+  }
+
+  // Comptes créés avant les mots de passe : on demande d'en choisir un (obligatoire)
+  function askPasswordIfMissing() {
+    if (!BM.Online.isOn() || BM.Online.hasPassword || $("#onboard")) return;
+    const box = document.createElement("div");
+    box.className = "onboard";
+    box.id = "onboard";
+    document.body.appendChild(box);
+    document.body.classList.add("no-scroll");
+    box.innerHTML = `
+      <form class="onboard-card" id="pwForm" autocomplete="on">
+        <div class="ob-logo">${LOGO}</div>
+        <h1>Protège ton compte</h1>
+        <p class="muted">Nouveau : choisis un mot de passe. Avec ton pseudo <b>${esc((G.state.account || {}).pseudo || "")}</b>, il te permettra de retrouver ton compte sur n'importe quel navigateur, téléphone ou ordinateur.</p>
+        <input type="text" name="username" autocomplete="username" value="${esc((G.state.account || {}).pseudo || "")}" hidden>
+        <label for="newPw">Mot de passe</label>
+        <div class="pw-wrap"><input id="newPw" type="password" maxlength="72" autocomplete="new-password" placeholder="6 caractères minimum"><button type="button" class="pw-eye" data-eye="newPw" aria-label="Afficher">👁</button></div>
+        <label for="newPw2">Retape ton mot de passe</label>
+        <div class="pw-wrap"><input id="newPw2" type="password" maxlength="72" autocomplete="new-password"><button type="button" class="pw-eye" data-eye="newPw2" aria-label="Afficher">👁</button></div>
+        <p class="ob-error" id="pwErr"></p>
+        <button class="btn btn-primary btn-wide" type="submit">Enregistrer mon mot de passe</button>
+      </form>`;
+    $$("[data-eye]", box).forEach((b) => b.addEventListener("click", () => { const i = $("#" + b.dataset.eye); i.type = i.type === "password" ? "text" : "password"; }));
+    setTimeout(() => $("#newPw").focus(), 50);
+    $("#pwForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const a = $("#newPw").value, b = $("#newPw2").value, err = $("#pwErr");
+      if (a.length < 6) return (err.textContent = "Le mot de passe doit faire au moins 6 caractères.");
+      if (a !== b) return (err.textContent = "Les deux mots de passe ne sont pas identiques.");
+      const btn = $("#pwForm button[type=submit]");
+      btn.disabled = true; btn.textContent = "Enregistrement…";
+      try { await BM.Online.setPassword(a); closeOnboarding(box, "Mot de passe enregistré 🔒"); }
+      catch (x) { btn.disabled = false; btn.textContent = "Enregistrer mon mot de passe"; err.textContent = x.message; }
+    });
+  }
+
+  // Profil : changer de mot de passe
+  function openChangePassword() {
+    BM.UI.openModal(`
+      <form class="confirm pw-change" id="chgForm" autocomplete="on">
+        <h2>Changer de mot de passe</h2>
+        <input type="text" name="username" autocomplete="username" value="${esc((G.state.account || {}).pseudo || "")}" hidden>
+        <label for="oldPw">Mot de passe actuel</label>
+        <input id="oldPw" type="password" maxlength="72" autocomplete="current-password">
+        <label for="nPw">Nouveau mot de passe</label>
+        <input id="nPw" type="password" maxlength="72" autocomplete="new-password" placeholder="6 caractères minimum">
+        <p class="ob-error" id="chgErr"></p>
+        <div class="row"><button type="button" class="btn" data-no>Annuler</button><button class="btn btn-primary" type="submit">Enregistrer</button></div>
+      </form>`);
+    $("#modalContent [data-no]").addEventListener("click", closeModal);
+    $("#chgForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const n = $("#nPw").value;
+      if (n.length < 6) return ($("#chgErr").textContent = "Le mot de passe doit faire au moins 6 caractères.");
+      try { await BM.Online.setPassword(n, $("#oldPw").value); closeModal(); toast("Mot de passe changé 🔒"); }
+      catch (x) { $("#chgErr").textContent = x.message; }
+    });
+  }
+
+  // Profil : se déconnecter de ce navigateur
+  function confirmLogout() {
+    BM.UI.openModal(`
+      <div class="confirm">
+        <h2>Se déconnecter ?</h2>
+        <p class="muted">Ton compte et ta collection restent enregistrés. Pour revenir, il faudra ton pseudo et ton mot de passe.</p>
+        <div class="row"><button class="btn" data-no>Annuler</button><button class="btn btn-danger" data-yes>Se déconnecter</button></div>
+      </div>`);
+    $("#modalContent [data-no]").addEventListener("click", closeModal);
+    $("#modalContent [data-yes]").addEventListener("click", async () => {
+      closeModal();
+      await BM.Online.logout();
+      G.clearAccount(); pull = null; seq++;
+      location.hash = "#booster"; render();
+      showOnboarding("login");
+    });
   }
 
   /* =========================================================
@@ -1050,5 +1235,6 @@
     }
     render();
     showOnboarding();
+    askPasswordIfMissing();
   });
 })();
