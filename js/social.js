@@ -233,7 +233,7 @@
       <div class="panel profile-head">
         <div class="avatar letter">${initial(p.pseudo)}</div>
         <div class="profile-id">
-          <h1 class="pseudo">${esc(p.pseudo)}</h1>
+          <h1 class="pseudo">${esc(p.pseudo)} <button class="btn btn-sm friends-btn" data-friends="${p.id}" data-pseudo="${esc(p.pseudo)}">👥 <span data-fcount>Amis</span></button></h1>
           <p class="muted small">Joueur depuis le ${since}</p>
         </div>
         <div class="head-actions">
@@ -266,6 +266,7 @@
       </div>
     </section>`;
 
+    fillCounts();
     const levelsOf = (cid) => ({ pseudo: p.pseudo, levels: coll[cid] || {} });
     $$(".other-coll .card, .vitrine .card").forEach((el) => el.addEventListener("click", () => BM.UI.openCardModal(el.dataset.card, levelsOf(el.dataset.card))));
     const bf = $("#befriend"), uf = $("#unfriend");
@@ -362,6 +363,71 @@
 
     draw();
   }
+
+  /* =========================================================
+     AMIS D'UN JOUEUR (bouton « Amis » à côté du pseudo, sur tous les profils)
+     ========================================================= */
+  const friendsCache = {}; // id → liste (évite de recharger deux fois)
+  async function loadFriends(id, fresh) {
+    if (fresh || !friendsCache[id]) friendsCache[id] = await O.playerFriends(id);
+    return friendsCache[id];
+  }
+  // Affiche le nombre d'amis sur les boutons présents dans la page
+  function fillCounts() {
+    if (!O.isOn()) return;
+    $$("[data-friends]").forEach(async (b) => {
+      try {
+        const list = await loadFriends(b.dataset.friends, true);
+        const span = $("[data-fcount]", b);
+        if (span) span.textContent = `${list.length} ami${list.length > 1 ? "s" : ""}`;
+      } catch (e) { /* le bouton reste « Amis » */ }
+    });
+  }
+
+  async function openFriends(id, pseudo) {
+    const mine = id === O.me;
+    BM.UI.openModal(`<div class="friends-modal"><h2>${mine ? "Mes amis" : `Amis de ${esc(pseudo)}`}</h2><div class="empty loading-box"><span class="spinner"></span> Chargement…</div></div>`);
+    let list, myIds;
+    try { [list, myIds] = await Promise.all([loadFriends(id, true), O.myFriendIds()]); }
+    catch (e) { $("#modalContent .friends-modal").innerHTML = `<h2>Amis</h2><p class="muted">${esc(e.message || e)}</p>`; return; }
+    const box = $("#modalContent .friends-modal");
+    if (!box) return; // fenêtre fermée entre-temps
+    const action = (f) => f.id === O.me ? `<span class="muted small">C'est toi</span>`
+      : myIds.includes(f.id) ? `<button class="btn btn-sm" disabled>✓ Ami</button>`
+      : `<button class="btn btn-primary btn-sm" data-fadd="${f.id}" data-fname="${esc(f.pseudo)}">+ Ajouter</button>`;
+    box.innerHTML = `
+      <h2>${mine ? "Mes amis" : `Amis de ${esc(pseudo)}`} <span class="count-pill">${list.length}</span></h2>
+      ${list.length ? `<div class="friends friends-list">${list.map((f) => `
+        <div class="friend">
+          <a class="friend-main" href="#joueur-${f.id}" data-fgo>
+            <span class="av big">${initial(f.pseudo)}</span>
+            <span><b>${esc(f.pseudo)}</b><small class="muted">${ownedCount(f.collection)} / ${BM.CARDS.length} cartes</small></span>
+          </a>
+          <div class="friend-actions">
+            ${f.id === O.me ? "" : `<a class="btn btn-sm" href="#joueur-${f.id}" data-fgo>Voir le profil</a>`}
+            ${action(f)}
+          </div>
+        </div>`).join("")}</div>`
+        : `<p class="muted">${mine ? "Tu n'as pas encore d'amis. Ajoute-les depuis l'onglet Social !" : `${esc(pseudo)} n'a pas encore d'amis.`}</p>`}
+      <div class="row"><button class="btn" data-fclose>Fermer</button></div>`;
+    $$("[data-fgo]", box).forEach((a) => a.addEventListener("click", () => BM.UI.closeModal()));
+    $("[data-fclose]", box).addEventListener("click", BM.UI.closeModal);
+    $$("[data-fadd]", box).forEach((b) => b.addEventListener("click", async () => {
+      b.disabled = true;
+      try {
+        await O.addFriend(b.dataset.fadd);
+        b.textContent = "✓ Ami"; b.classList.remove("btn-primary");
+        toast(`<b>${b.dataset.fname}</b> ajouté à tes amis`);
+        if (mine || location.hash === "#profil") fillCounts();
+      } catch (x) { toast(esc(x.message), "bad"); b.disabled = false; }
+    }));
+  }
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-friends]");
+    if (b) { e.preventDefault(); openFriends(b.dataset.friends, b.dataset.pseudo); }
+  });
+  BM.Social = { fillCounts, openFriends };
+  fillCounts();
 
   BM.UI.page("social", renderSocial);
   BM.UI.prefixPage("joueur-", renderPlayer);

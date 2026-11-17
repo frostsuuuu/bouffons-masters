@@ -740,7 +740,7 @@
         <div class="avatar">${LOGO}</div>
         <div class="profile-id">
           <span class="muted small">Pseudo <span class="lock-tag">🔒 définitif</span></span>
-          <h1 class="pseudo">${esc(acc.pseudo || "—")}</h1>
+          <h1 class="pseudo">${esc(acc.pseudo || "—")}${BM.Online.isOn() && BM.Online.me ? ` <button class="btn btn-sm friends-btn" data-friends="${BM.Online.me}" data-pseudo="${esc(acc.pseudo || "")}">👥 <span data-fcount>Amis</span></button>` : ""}</h1>
           <p class="muted small">Joueur depuis le ${since}${acc.id ? ` · <span class="acc-id">#${esc(acc.id.slice(0, 8))}</span>` : ""}</p>
         </div>
       </div>
@@ -800,6 +800,7 @@
       </div>`}
     </section>`;
 
+    if (BM.Social) BM.Social.fillCounts();
     $$(".best .card, .vitrine .card").forEach((el) => el.addEventListener("click", () => openCardModal(el.dataset.card)));
     $$(".vitrine .v-empty, #editVitrine").forEach((el) => el.addEventListener("click", openVitrinePicker));
     const rb = $("#resetBtn");

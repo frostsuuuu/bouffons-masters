@@ -230,6 +230,16 @@ BM.Online = (function () {
     await ready();
     await q(sb.from("friendships").delete().eq("user_id", myId()).eq("friend_id", id));
   }
+  // Amis d'un joueur (ceux qu'il a ajoutés), visibles par tout le monde
+  async function playerFriends(id) {
+    await ready();
+    return (await q(sb.rpc("player_friends", { p_player: id }))) || [];
+  }
+  async function myFriendIds() {
+    await ready();
+    const rows = await q(sb.from("friendships").select("friend_id").eq("user_id", myId()));
+    return (rows || []).map((r) => r.friend_id);
+  }
   async function isFriend(id) {
     await ready();
     const rows = await q(sb.from("friendships").select("friend_id").eq("user_id", myId()).eq("friend_id", id));
@@ -270,7 +280,7 @@ BM.Online = (function () {
 
   return {
     configured, init, ready, signup, flush, fuse, setVitrine, pushStats, refresh,
-    findByPseudo, getPlayer, social, addFriend, removeFriend, isFriend,
+    findByPseudo, getPlayer, social, addFriend, removeFriend, isFriend, playerFriends, myFriendIds,
     trades, proposeTrade, acceptTrade, closeTrade,
     get status() { return status; },
     get player() { return player; },
