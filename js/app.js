@@ -167,7 +167,7 @@
           <button class="round-btn" id="nextBtn" aria-label="Carte suivante">›</button>
         </div>
         <button class="btn btn-primary btn-wide" id="mainBtn"></button>
-        <p class="muted small hint-text">${C.retournementAuto ? "Touche la carte pour passer à la suivante" : "Touche la carte pour la retourner · touche encore pour passer à la suivante"}</p>
+        <p class="muted small hint-text">${C.retournementAuto ? "Touche la carte pour la voir en grand · flèche ou bouton pour passer à la suivante" : "Touche la carte pour la retourner, puis pour la voir en grand · flèche ou bouton pour passer à la suivante"}</p>
       </div>`;
   }
 
@@ -287,8 +287,9 @@
       if (sx == null || !pull || pull.opening) return;
       const dx = e.clientX - sx, dy = e.clientY - sy;
       sx = null;
-      if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) return dx < 0 ? advance() : back();
-      if (Math.abs(dx) < 12 && Math.abs(dy) < 12) advance();
+      // Toucher la carte : la retourne si elle est de dos, sinon ouvre sa vue en grand.
+      // Pour passer à la carte suivante : uniquement la flèche ou le bouton en dessous.
+      if (Math.abs(dx) < 12 && Math.abs(dy) < 12) tapCard();
     });
     $("#prevBtn").addEventListener("click", back);
     $("#nextBtn").addEventListener("click", advance);
@@ -370,6 +371,15 @@
     pull.index++;
     layoutStack();
     scheduleAutoFlip(pull.index);
+  }
+  // Toucher la carte du dessus : retourne-la, ou (déjà retournée) affiche sa fiche en grand
+  function tapCard() {
+    if (!pull || pull.done || pull.opening) return;
+    const i = pull.index;
+    const slot = $(`#stage .slot[data-i="${i}"]`);
+    if (slot && slot.classList.contains("flipping")) return;
+    if (!pull.flipped.has(i)) return flipCurrent();
+    openCardModal(pull.results[i].card.id, null, { noFuse: true });
   }
   function back() {
     if (!pull || pull.done || pull.opening || pull.index === 0) return;
@@ -773,7 +783,7 @@
      FICHE CARTE (fenêtre)
      ========================================================= */
   // other = { pseudo, levels } pour regarder la carte d'un autre joueur
-  function openCardModal(id, other) {
+  function openCardModal(id, other, opts = {}) {
     const card = G.card(id);
     if (!card) return;
     const levels = other ? other.levels || {} : G.levels(id);
@@ -809,7 +819,7 @@
           ${Object.keys(levels).map(Number).sort((a, b) => a - b).map((l) => `
             <div class="level-row">
               <span class="lv">${starsLabel(l)}</span><b>×${levels[l]}</b>
-              ${other ? "" : G.canFuse(id, l) ? `<button class="btn btn-primary btn-sm" data-fuse="${esc(id)}" data-lv="${l}">⚗️ Fusionner → ${stars(l + 1)}</button>`
+              ${other || opts.noFuse ? "" : G.canFuse(id, l) ? `<button class="btn btn-primary btn-sm" data-fuse="${esc(id)}" data-lv="${l}">⚗️ Fusionner → ${stars(l + 1)}</button>`
                 : l >= G.maxLevel() ? `<small class="muted">Max d'étoiles</small>` : `<small class="muted">encore ${2 - levels[l]} pour fusionner</small>`}
             </div>`).join("")}
         </div>` : ""}
