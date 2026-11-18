@@ -594,7 +594,7 @@
         <div class="coll-progress"><span><b>${uniq}</b> / ${total} cartes</span><div class="bar"><i style="width:${total ? (uniq / total) * 100 : 0}%"></i></div></div>
       </div>
       <div class="filters">
-        <div class="chips">${chip("rarete", "all", "Toutes raretés")}${C.raretes.map((r) => chip("rarete", r.id, esc(r.nom), `style="--rc:${r.couleur}"`)).join("")}</div>
+        <div class="chips">${chip("rarete", "all", "Toutes raretés")}${G.availableRarities().map((r) => chip("rarete", r.id, esc(r.nom), `style="--rc:${r.couleur}"`)).join("")}</div>
         <div class="chips">
           ${chip("owned", "all", "Toutes")}${chip("owned", "yes", "Obtenues")}${chip("owned", "no", "Manquantes")}
           <label class="sort">Trier :
@@ -789,7 +789,7 @@
       <div class="panel">
         <h2>Progression par rareté</h2>
         <div class="rarity-list">
-          ${C.raretes.map((r) => {
+          ${G.availableRarities().map((r) => {
             const all = BM.CARDS.filter((c) => c.rarete === r.id);
             const got = all.filter((c) => G.owned(c.id)).length;
             return `

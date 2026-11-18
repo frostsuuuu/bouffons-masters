@@ -187,6 +187,16 @@ h1, h2, h3 { margin: 0; }
 .card.r-epique      { --rc2: #5b17a8; --lv: 4; }
 .card.r-legendaire  { --rc2: #d0306a; --lv: 5; }
 .card.r-legendaire .card-inner { border-color: #ffc96b; }
+/* Rareté Secrète : rubis profond + contour arc-en-ciel */
+.card.r-secrete     { --rc2: #3a0a5a; --lv: 6; }
+.card.r-secrete .card-inner { border-color: transparent; border-width: 1.6cqw;
+  background-image: linear-gradient(165deg, color-mix(in srgb, var(--rc) 40%, transparent), color-mix(in srgb, var(--rc2) 30%, transparent) 60%, rgba(255,255,255,.03)),
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--rc) 80%, transparent) 0, transparent 62%),
+    radial-gradient(circle at 96% 100%, color-mix(in srgb, var(--rc2) 90%, transparent) 0, transparent 48%),
+    linear-gradient(#141226, #141226),
+    linear-gradient(90deg, #ff4d6d, #ffb84d, #ffe74d, #4dff88, #4dc3ff, #9b6bff, #ff4dd8);
+  background-origin: border-box; background-clip: padding-box, padding-box, padding-box, padding-box, border-box; }
+.card.r-secrete .card-rarity { background: linear-gradient(90deg, #ff4d6d, #ffb84d, #4dc3ff, #9b6bff, #ff4dd8); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
 /* Carte avec étoiles : la pastille est posée sur le coin, on décale un peu le nom pour ne pas le cacher */
 .card:has(.card-stars) .card-head { padding-top: 2.5cqw; }
 

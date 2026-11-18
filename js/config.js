@@ -37,7 +37,9 @@ BM.CONFIG = {
     { id: "commune",     nom: "Commune",     couleur: "#3ee08f", poids: 70 },
     { id: "rare",        nom: "Rare",        couleur: "#3fa9ff", poids: 22 },
     { id: "epique",      nom: "Épique",      couleur: "#c05cff", poids: 6 },
-    { id: "legendaire",  nom: "Légendaire",  couleur: "#ffa726", poids: 2 }
+    { id: "legendaire",  nom: "Légendaire",  couleur: "#ffa726", poids: 2 },
+    // Rareté secrète : invisible dans le jeu tant qu'aucune carte n'y est rangée (rarete: "secrete")
+    { id: "secrete",     nom: "Secrète",     couleur: "#ff2e63", poids: 0.5 }
   ],
 
   /* Toutes les cartes sont des personnages : pas de catégories. */
