@@ -310,7 +310,7 @@
     const BEAT = 100;                               // écart entre deux cartes (ms)
     const MOVE = 300;                               // durée du mouvement de chaque carte (ms)
     const EASE = "cubic-bezier(.45,0,.25,1)";       // même courbe pour tout
-    const SPAN = (n - 1) * BEAT + MOVE;             // durée totale d'une vague (5 cartes)
+    const SPAN = (n - 1) * BEAT + MOVE;             // durée totale d'une vague (selon le nombre de cartes)
     const moveT = `transform ${MOVE}ms ${EASE}, filter ${MOVE}ms ${EASE}, opacity ${MOVE}ms ${EASE}`;
 
     // 2. Le booster descend pendant que les cartes montent une à une (la meilleure — au fond — en premier)
