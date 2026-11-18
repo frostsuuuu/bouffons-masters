@@ -242,7 +242,7 @@ BM.CARDS = [
   },
   {
     id: "gp-vouille-gp-zennadi",
-    nom: "GP Vouille x GP Zennadi",
+    nom: "GP Zennadi x GP Vouille",
     image: "images/gp-vouille-gp-zennadi.jpg",
     rarete: "legendaire",
     attaque: 110, defense: 118
