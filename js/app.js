@@ -94,11 +94,13 @@
     $("#boosterPill").classList.toggle("is-empty", left === 0);
     const sb = $("#socialBadge");
     if (sb) { const n = BM.Online.incoming; sb.hidden = !n; sb.textContent = n; }
+    const qb = $("#qeBadge");
+    if (qb) { const n = BM.Online.qe ? BM.Online.qe.waiting : 0; qb.hidden = !n; qb.textContent = n; }
     const nf = G.fusables().length;
     const b = $("#fusionBadge");
     b.hidden = nf === 0;
     b.textContent = nf;
-    $$(".nav a").forEach((a) => a.classList.toggle("active", a.dataset.page === currentPage || (a.dataset.page === "social" && /^(joueur|echange)-/.test(currentPage))));
+    $$(".nav a").forEach((a) => a.classList.toggle("active", a.dataset.page === currentPage || (a.dataset.page === "social" && /^(joueur|echange)-/.test(currentPage)) || (a.dataset.page === "quiestce" && /^qe-/.test(currentPage))));
   }
 
   /* =========================================================
@@ -1226,10 +1228,14 @@
 
   // Toutes les 20 s : relit le compte sur le serveur (échanges acceptés par un ami…)
   let lastSync = "";
+  let lastQe = 0;
   async function syncNow(force) {
     if (!BM.Online.isOn() || document.hidden) return;
     try {
       await BM.Online.refresh();
+      const qw = BM.Online.qe.waiting;
+      if (qw > lastQe && !/^qe-|^quiestce$/.test(currentPage)) toast("❓ Qui est-ce : une partie t'attend !");
+      lastQe = qw;
       const sig = JSON.stringify([G.state.collection, G.state.vitrine, BM.Online.incoming]);
       const changed = sig !== lastSync;
       lastSync = sig;

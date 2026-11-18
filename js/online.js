@@ -40,7 +40,14 @@ BM.Online = (function () {
     MDP_LONGUEUR: "Le mot de passe doit faire au moins 6 caractères.",
     MDP_ACTUEL: "Mot de passe actuel incorrect.",
     ANONYMOUS: "Les connexions anonymes sont désactivées dans Supabase (voir le guide).",
-    LIB: "Impossible de charger la connexion au serveur."
+    LIB: "Impossible de charger la connexion au serveur.",
+    QE_PAS_ASSEZ: "Il te faut au moins 6 cartes différentes dans ta collection pour lancer un Qui est-ce.",
+    QE_INTROUVABLE: "Cette partie n'existe plus.",
+    QE_DEJA_TRAITEE: "Cette invitation a déjà été traitée.",
+    QE_MAUVAISE_ETAPE: "Ce n'est plus le moment de choisir ta carte.",
+    QE_DEJA_CHOISI: "Tu as déjà choisi ta carte.",
+    QE_CARTE_INVALIDE: "Cette carte ne fait pas partie de la partie.",
+    QE_PAS_TON_TOUR: "Ce n'est pas ton tour."
   };
   function err(code, raw) {
     const e = new Error(MESSAGES[code] || raw || "Erreur du serveur.");
@@ -205,6 +212,7 @@ BM.Online = (function () {
     BM.Game.applyPlayer(row);
     const t = await q(sb.from("trades").select("id").eq("to_id", row.id).eq("status", "pending"));
     incoming = (t || []).length;
+    try { qeGames = (await q(sb.rpc("qe_list"))) || []; } catch (e) { /* fonction absente : on ignore */ }
     return true;
   }
 
@@ -297,7 +305,29 @@ BM.Online = (function () {
     await q(sb.rpc("close_trade", { p_trade: id }));
   }
 
+  /* ---------- Mini-jeu Qui est-ce ---------- */
+  let qeGames = [];
+  // Parties qui attendent quelque chose de moi : invitation reçue, carte à choisir, mon tour
+  const qeWaiting = () => qeGames.filter((g) =>
+    (g.status === "invite" && g.role === "guest") || (g.status === "choose" && !g.my_secret) || (g.status === "play" && g.my_turn)).length;
+  async function qeList() { await ready(); qeGames = (await q(sb.rpc("qe_list"))) || []; return qeGames; }
+  async function qeCall(fn, args) { await ready(); return q(sb.rpc(fn, args)); }
+  const qe = {
+    list: qeList,
+    invite: (guest) => qeCall("qe_invite", { p_guest: guest }),
+    respond: (id, accept) => qeCall("qe_respond", { p_game: id, p_accept: accept }),
+    quit: (id) => qeCall("qe_quit", { p_game: id }),
+    choose: (id, card) => qeCall("qe_choose", { p_game: id, p_card: card }),
+    setDown: (id, down) => qeCall("qe_set_down", { p_game: id, p_down: down }),
+    endTurn: (id, down) => qeCall("qe_end_turn", { p_game: id, p_down: down }),
+    guess: (id, card, down) => qeCall("qe_guess", { p_game: id, p_card: card, p_down: down }),
+    state: (id) => qeCall("qe_state", { p_game: id }),
+    get waiting() { return qeWaiting(); },
+    get games() { return qeGames; }
+  };
+
   return {
+    qe,
     configured, init, ready, signup, flush, openBooster, fuse, setVitrine, pushStats, refresh,
     findByPseudo, getPlayer, social, addFriend, removeFriend, isFriend, playerFriends, myFriendIds,
     trades, proposeTrade, acceptTrade, closeTrade,
