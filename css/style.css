@@ -204,12 +204,6 @@ h1, h2, h3 { margin: 0; }
     radial-gradient(circle at 96% 100%, color-mix(in srgb, var(--rc2) 85%, transparent) 0, transparent 48%),
     url(../images/motifs/courbes.svg);
   background-size: auto, auto, auto, cover; background-position: 0 0, 0 0, 0 0, center; background-repeat: no-repeat; }
-.card.r-legendaire .card-inner { background-image: linear-gradient(165deg, color-mix(in srgb, var(--rc) 38%, transparent), color-mix(in srgb, var(--rc2) 18%, transparent) 60%, rgba(255,255,255,.03)),
-    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--rc) 80%, transparent) 0, transparent 62%),
-    radial-gradient(circle at 96% 100%, color-mix(in srgb, var(--rc2) 85%, transparent) 0, transparent 48%),
-    repeating-conic-gradient(from 0deg at 50% 42%, rgba(255,255,255,.07) 0 3deg, transparent 3deg 12deg);
-  background-repeat: no-repeat; }
-
 /* Rareté Secrète : verre noir fumé, contour argent irisé qui tourne, paillettes et reflet qui passe */
 @property --sa { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
 .card.r-secrete     { --rc2: #000; --lv: 6; }
