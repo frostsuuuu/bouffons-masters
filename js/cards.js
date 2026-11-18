@@ -109,7 +109,7 @@ BM.CARDS = [
   },
   {
     id: "josue",
-    nom: "Josué",
+    nom: "Josué Auschwitz",
     image: "images/josue.jpg",
     rarete: "epique",
     attaque: 74, defense: 79
