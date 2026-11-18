@@ -144,7 +144,7 @@ BM.Online = (function () {
     if (!player || !player.is_admin) return;
     const C = BM.CONFIG;
     try {
-      await q(sb.rpc("sync_catalog", {
+      const row = await q(sb.rpc("sync_catalog", {
         p_cards: BM.CARDS.map((c) => ({ id: c.id, rarete: c.rarete })),
         p_settings: {
           cards_per_booster: C.cartesParBooster, recharge_minutes: C.rechargeMinutes,
@@ -153,6 +153,7 @@ BM.Online = (function () {
           rarities: C.raretes.map((r) => ({ id: r.id, poids: r.poids })), test_mode: !!C.modeTest
         }
       }));
+      if (row && row.id) player = row; // compte « toutes les cartes » (mode dev) : collection mise à jour
     } catch (e) { console.warn("[Bouffons Masters] synchro du catalogue impossible :", e); }
   }
   // Ouvre un booster : le serveur vérifie le stock, tire les cartes et les ajoute à la collection

@@ -482,10 +482,17 @@ begin
   return jsonb_build_object('bstock', p.bstock, 'blast', p.blast);
 end $$;
 
--- Copie du catalogue et des réglages depuis le jeu (admins uniquement)
-create or replace function public.sync_catalog(p_cards jsonb, p_settings jsonb)
-returns void language plpgsql security definer set search_path = public as $$
-declare me uuid;
+-- Mode développement : comptes qui reçoivent automatiquement toutes les cartes du jeu
+alter table public.players add column if not exists auto_all boolean not null default false;
+update public.players set auto_all = true where pseudo = 'Frosty';
+
+-- Copie du catalogue et des réglages depuis le jeu (admins uniquement).
+-- Si l'admin a « auto_all », il reçoit aussi les cartes qui lui manquent et la fonction
+-- renvoie son compte à jour (sinon null).
+drop function if exists public.sync_catalog(jsonb, jsonb);
+create function public.sync_catalog(p_cards jsonb, p_settings jsonb)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare me uuid; c jsonb; k text;
 begin
   me := bm_me();
   if me is null or not exists (select 1 from players where id = me and is_admin) then raise exception 'PAS_ADMIN'; end if;
@@ -504,6 +511,17 @@ begin
     rarities          = coalesce(p_settings->'rarities', rarities),
     test_mode         = coalesce((p_settings->>'test_mode')::boolean, false)
   where id = 1;
+  if exists (select 1 from players where id = me and auto_all) then
+    select collection into c from players where id = me for update;
+    for k in select id from bm_cards loop
+      if not exists (select 1 from jsonb_each_text(coalesce(c->k, '{}'::jsonb)) e where e.value::int > 0) then
+        c := bm_coll_add(c, k, '1', 1);
+      end if;
+    end loop;
+    update players set collection = c, updated_at = now() where id = me;
+    return public.my_player();
+  end if;
+  return null;
 end $$;
 
 -- Les colonnes boosters / admin ne sont modifiables que par le serveur
