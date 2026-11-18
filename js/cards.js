@@ -96,7 +96,7 @@ BM.CARDS = [
     id: "cousin-baveux",
     nom: "Cousin baveux",
     image: "images/cousin-baveux.jpg",
-    rarete: "legendaire",
+    rarete: "secrete",
     attaque: 115, defense: 105,
   },
   {
