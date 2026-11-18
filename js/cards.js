@@ -371,5 +371,33 @@ BM.CARDS = [
     image: "images/mimi.jpg",
     rarete: "commune",
     attaque: 13, defense: 21
+  },
+  {
+    id: "big-aubert",
+    nom: "Big Aubert",
+    image: "images/big-aubert.webp",
+    rarete: "legendaire",
+    attaque: 110, defense: 118
+  },
+  {
+    id: "steven",
+    nom: "Steven",
+    image: "images/steven.webp",
+    rarete: "commune",
+    attaque: 15, defense: 18
+  },
+  {
+    id: "bat-chez-legend-hair",
+    nom: "Bat chez Légend'Hair",
+    image: "images/bat-chez-legend-hair.webp",
+    rarete: "epique",
+    attaque: 78, defense: 77
+  },
+  {
+    id: "krimi-petit",
+    nom: "Krimi Petit",
+    image: "images/krimi-petit.webp",
+    rarete: "rare",
+    attaque: 48, defense: 50
   }
 ];
