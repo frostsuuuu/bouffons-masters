@@ -222,7 +222,7 @@ BM.CARDS = [
   {
     id: "evan-linkedin",
     nom: "Evan Linkedin",
-    image: "images/evan-linkedin.jpg",
+    image: "images/evan-linkedin.webp",
     rarete: "rare",
     attaque: 50, defense: 64
   },
