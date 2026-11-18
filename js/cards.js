@@ -315,5 +315,19 @@ BM.CARDS = [
     image: "images/adam.webp",
     rarete: "commune",
     attaque: 16, defense: 17
+  },
+  {
+    id: "cooki",
+    nom: "Cooki",
+    image: "images/cooki.jpg",
+    rarete: "commune",
+    attaque: 17, defense: 20
+  },
+  {
+    id: "frosty-baillone",
+    nom: "Frosty Bailloné",
+    image: "images/frosty-baillone.jpg",
+    rarete: "rare",
+    attaque: 49, defense: 58
   }
 ];
