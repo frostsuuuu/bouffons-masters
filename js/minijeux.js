@@ -17,13 +17,14 @@
   const LOGO = () => ($("[data-logo]") ? $("[data-logo]").innerHTML : "");
 
   /* ---------- Les niveaux (solo) et les grilles (1v1) ----------
-     coups = nombre d'essais (2 cartes retournées = 1 coup), réussis ou ratés */
+     coups = nombre d'erreurs permises : une paire trouvée ne coûte rien,
+     seules les 2 cartes différentes retournées comptent comme un coup */
   const LEVELS = [
-    { cols: 4, rows: 3, pairs: 6,  coups: 16 },
-    { cols: 4, rows: 4, pairs: 8,  coups: 18 },
-    { cols: 5, rows: 4, pairs: 10, coups: 20 },
-    { cols: 6, rows: 5, pairs: 15, coups: 28 },
-    { cols: 6, rows: 6, pairs: 18, coups: 32 }
+    { cols: 4, rows: 3, pairs: 6,  coups: 10 },
+    { cols: 4, rows: 4, pairs: 8,  coups: 10 },
+    { cols: 5, rows: 4, pairs: 10, coups: 11 },
+    { cols: 6, rows: 5, pairs: 15, coups: 14 },
+    { cols: 6, rows: 6, pairs: 18, coups: 15 }
   ];
   const DIFF = ["Facile", "Moyen", "Difficile", "Très dur", "Infernal"];
   const gridOf = (pairs) => LEVELS.find((l) => l.pairs === pairs) || LEVELS[0];
@@ -78,7 +79,7 @@
       <div class="mj-games">
         <a class="mj-game" href="#memory-solo">
           <span class="mj-ico">🎯</span>
-          <span class="mj-txt"><b>Solo</b><span>5 niveaux, de 12 à 36 cartes, avec un nombre de coups limité. Arrête-toi quand tu veux pour garder ta récompense.</span></span>
+          <span class="mj-txt"><b>Solo</b><span>5 niveaux, de 12 à 36 cartes, avec un nombre d'erreurs limité. Arrête-toi quand tu veux pour garder ta récompense.</span></span>
         </a>
         <a class="mj-game" href="#memory-multi">
           <span class="mj-ico">⚔️</span>
@@ -107,8 +108,8 @@
         <h2>5 niveaux</h2>
         <p class="muted">Chaque niveau réussi te débloque une récompense plus grosse. Après chaque niveau, tu choisis : <b>t'arrêter</b> et garder ta récompense, ou <b>continuer</b>… mais si tu échoues, tu perds tout.</p>
         <div class="mm-levels">${LEVELS.map((l, i) => `
-          <div class="mm-level"><b>Niveau ${i + 1}</b><span>${l.cols}×${l.rows} · ${l.pairs * 2} cartes</span><span>${l.coups} coups</span><em class="d${i}">${DIFF[i]}</em></div>`).join("")}</div>
-        <p class="muted small">Un coup = 2 cartes retournées, que la paire soit bonne ou non. Récompenses : bientôt !</p>
+          <div class="mm-level"><b>Niveau ${i + 1}</b><span>${l.cols}×${l.rows} · ${l.pairs * 2} cartes</span><span>${l.coups} coups (erreurs)</span><em class="d${i}">${DIFF[i]}</em></div>`).join("")}</div>
+        <p class="muted small">Une paire trouvée ne coûte rien : seul un essai raté (2 cartes différentes) te coûte un coup. Récompenses : bientôt !</p>
         <button class="btn btn-primary btn-wide" id="mmStart">▶ Commencer le niveau 1</button>
       </div>
     </section>`;
@@ -131,7 +132,6 @@
       <div class="mm-hud">
         <span class="mm-stat"><span>Paires</span><b>${solo.matched.size / 2} / ${L.pairs}</b></span>
         <span class="mm-stat ${left <= 3 ? "warn" : ""}"><span>Coups restants</span><b id="mmLeft">${left}</b></span>
-        <span class="mm-stat"><span>Erreurs</span><b>${solo.errors}</b></span>
         <span class="mm-steps">${LEVELS.map((_, i) => `<i class="${i < solo.lv ? "ok" : i === solo.lv ? "now" : ""}">${i + 1}</i>`).join("")}</span>
       </div>
       <div class="mm-board" style="${boardStyle(L)}">${solo.deck.map((id, i) =>
@@ -146,14 +146,13 @@
     $(`.mm-tile[data-i="${i}"]`).classList.add("flipped");
     if (solo.open.length < 2) return;
     const [a, b] = solo.open;
-    solo.coups++;
     const L = LEVELS[solo.lv];
     if (solo.deck[a] === solo.deck[b]) {
       solo.matched.add(a); solo.matched.add(b); solo.open = [];
       setTimeout(() => { $$(`.mm-tile[data-i="${a}"], .mm-tile[data-i="${b}"]`).forEach((t) => t.classList.add("matched")); }, 350);
       if (solo.matched.size === solo.deck.length) return setTimeout(() => { drawSolo(); levelWon(); }, 700);
     } else {
-      solo.errors++;
+      solo.coups++; solo.errors++;
       solo.lock = true;
       setTimeout(() => {
         $$(`.mm-tile[data-i="${a}"], .mm-tile[data-i="${b}"]`).forEach((t) => t.classList.remove("flipped"));
@@ -164,8 +163,6 @@
     const left = L.coups - solo.coups;
     const el = $("#mmLeft"); if (el) { el.textContent = left; el.parentElement.classList.toggle("warn", left <= 3); }
     const p = $(".mm-stat b"); if (p) p.textContent = `${solo.matched.size / 2} / ${L.pairs}`;
-    const e = $$(".mm-stat b")[2]; if (e) e.textContent = solo.errors;
-    if (solo.coups >= L.coups && solo.matched.size < solo.deck.length && solo.deck[a] === solo.deck[b]) { solo.lock = true; setTimeout(() => { drawSolo(); levelLost(); }, 700); }
   }
 
   function levelWon() {
@@ -174,9 +171,9 @@
       <div class="confirm mm-result win">
         <div class="mm-big">🏆</div>
         <h2>${last ? "Memory terminé !" : `Niveau ${lv + 1} réussi !`}</h2>
-        <p class="muted">${L.pairs} paires en ${solo.coups} coups (${solo.errors} erreur${solo.errors > 1 ? "s" : ""}).</p>
+        <p class="muted">${L.pairs} paires trouvées avec ${solo.errors} erreur${solo.errors > 1 ? "s" : ""} sur ${L.coups} permises.</p>
         <div class="mm-reward">🎁 Récompense du niveau ${lv + 1} : <b>bientôt disponible</b></div>
-        ${last ? `<p>Tu as réussi les 5 niveaux. Respect.</p>` : `<p>Tu t'arrêtes et tu gardes ta récompense, ou tu tentes le niveau ${lv + 2} (${LEVELS[lv + 1].pairs * 2} cartes, ${LEVELS[lv + 1].coups} coups) ? Si tu échoues, tu perds tout.</p>`}
+        ${last ? `<p>Tu as réussi les 5 niveaux. Respect.</p>` : `<p>Tu t'arrêtes et tu gardes ta récompense, ou tu tentes le niveau ${lv + 2} (${LEVELS[lv + 1].pairs * 2} cartes, ${LEVELS[lv + 1].coups} erreurs permises) ? Si tu échoues, tu perds tout.</p>`}
         <div class="pull-actions">
           <button class="btn" data-stop>🏁 ${last ? "Terminer" : "M'arrêter là"}</button>
           ${last ? "" : `<button class="btn btn-primary" data-next>▶ Niveau ${lv + 2}</button>`}
