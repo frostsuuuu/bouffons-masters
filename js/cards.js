@@ -16,14 +16,6 @@ window.BM = window.BM || {};
 
 BM.CARDS = [
   {
-    id: "roi-des-bouffons",
-    nom: "Le Roi des Bouffons",
-    image: "images/roi-des-bouffons.jpg",
-    rarete: "legendaire",
-    attaque: 120, defense: 100,
-    emoji: "👑"
-  },
-  {
     id: "killian-accart",
     nom: "Killian Accart",
     image: "images/killian-accart.jpg",
@@ -76,8 +68,8 @@ BM.CARDS = [
     id: "krimi-chatte",
     nom: "Krimi Chatte",
     image: "images/krimi-chatte.webp",
-    rarete: "epique",
-    attaque: 82, defense: 74
+    rarete: "legendaire",
+    attaque: 112, defense: 104
   },
   {
     id: "mikha-albinos",
@@ -232,13 +224,6 @@ BM.CARDS = [
     image: "images/zuzurl.jpg",
     rarete: "rare",
     attaque: 66, defense: 48
-  },
-  {
-    id: "evan-stade",
-    nom: "Evan stade",
-    image: "images/evan-stade.jpg",
-    rarete: "rare",
-    attaque: 54, defense: 57
   },
   {
     id: "gp-vouille-gp-zennadi",
