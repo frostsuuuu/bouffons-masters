@@ -375,7 +375,7 @@ BM.CARDS = [
   {
     id: "big-aubert",
     nom: "Big Aubert",
-    image: "images/big-aubert.webp",
+    image: "images/big-aubert.jpg",
     rarete: "legendaire",
     attaque: 110, defense: 118
   },
@@ -389,7 +389,7 @@ BM.CARDS = [
   {
     id: "bat-chez-legend-hair",
     nom: "Bat chez Légend'Hair",
-    image: "images/bat-chez-legend-hair.webp",
+    image: "images/bat-chez-legend-hair.jpg",
     rarete: "epique",
     attaque: 78, defense: 77
   },
