@@ -251,7 +251,7 @@ h1, h2, h3 { margin: 0; }
 .card.r-secrete .card-inner::after { content: ""; position: absolute; inset: -40%; z-index: 4; pointer-events: none; mix-blend-mode: screen;
   background: linear-gradient(115deg, transparent 38%, rgba(255,77,109,.25) 43%, rgba(255,231,77,.3) 46%, rgba(255,255,255,.55) 49%, rgba(77,255,136,.3) 52%, rgba(77,195,255,.3) 55%, rgba(155,107,255,.25) 58%, transparent 63%);
   animation: secret-sweep 2.2s ease-in-out infinite; }
-@keyframes secret-sweep { 0% { transform: translateX(-35%); } 70%, 100% { transform: translateX(35%); } }
+@keyframes secret-sweep { 0% { transform: translateX(-75%); } 70%, 100% { transform: translateX(75%); } }
 .card.r-secrete.missing .card-inner, .card.r-secrete.missing .card-inner::before, .card.r-secrete.missing .card-inner::after { animation: none; }
 .card.r-secrete.missing .card-inner::before, .card.r-secrete.missing .card-inner::after { display: none; }
 /* Animations par rareté, chacune différente :
