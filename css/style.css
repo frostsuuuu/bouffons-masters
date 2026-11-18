@@ -187,16 +187,41 @@ h1, h2, h3 { margin: 0; }
 .card.r-epique      { --rc2: #5b17a8; --lv: 4; }
 .card.r-legendaire  { --rc2: #d0306a; --lv: 5; }
 .card.r-legendaire .card-inner { border-color: #ffc96b; }
-/* Rareté Secrète : rubis profond + contour arc-en-ciel */
-.card.r-secrete     { --rc2: #3a0a5a; --lv: 6; }
-.card.r-secrete .card-inner { border-color: transparent; border-width: 1.6cqw;
-  background-image: linear-gradient(165deg, color-mix(in srgb, var(--rc) 40%, transparent), color-mix(in srgb, var(--rc2) 30%, transparent) 60%, rgba(255,255,255,.03)),
-    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--rc) 80%, transparent) 0, transparent 62%),
-    radial-gradient(circle at 96% 100%, color-mix(in srgb, var(--rc2) 90%, transparent) 0, transparent 48%),
-    linear-gradient(#141226, #141226),
-    linear-gradient(90deg, #ff4d6d, #ffb84d, #ffe74d, #4dff88, #4dc3ff, #9b6bff, #ff4dd8);
-  background-origin: border-box; background-clip: padding-box, padding-box, padding-box, padding-box, border-box; }
-.card.r-secrete .card-rarity { background: linear-gradient(90deg, #ff4d6d, #ffb84d, #4dc3ff, #9b6bff, #ff4dd8); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+/* Rareté Secrète : verre noir fumé, contour argent irisé qui tourne, paillettes et reflet qui passe */
+@property --sa { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+.card.r-secrete     { --rc2: #000; --lv: 6; }
+.card.r-secrete .card-inner { border-color: transparent; border-width: 1.4cqw;
+  background-image:
+    linear-gradient(165deg, rgba(255,255,255,.10), rgba(255,255,255,.02) 50%, rgba(255,255,255,.06)),
+    radial-gradient(circle at 50% 40%, rgba(150,150,170,.35) 0, transparent 60%),
+    radial-gradient(circle at 90% 100%, rgba(0,0,0,.9) 0, transparent 50%),
+    linear-gradient(#0b0b0f, #0b0b0f),
+    conic-gradient(from var(--sa), #f5f5ff, #6b6b78, #d8c8ff, #2a2a33, #c8f0ff, #6b6b78, #fff3d0, #2a2a33, #f5f5ff);
+  background-origin: border-box; background-clip: padding-box, padding-box, padding-box, padding-box, border-box;
+  box-shadow: inset 0 0 12cqw rgba(0,0,0,.8), 0 0 6cqw rgba(220,220,255,.35), 0 0 16cqw rgba(140,120,255,.25);
+  animation: secret-spin 6s linear infinite; }
+@keyframes secret-spin { to { --sa: 360deg; } }
+.card.r-secrete .card-name { background: linear-gradient(90deg, #fff, #b9b9c8 40%, #fff 60%, #9a9aae); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.card.r-secrete .card-art { border-color: rgba(220,220,240,.55); box-shadow: 0 0 4cqw rgba(200,200,255,.35); }
+.card.r-secrete .card-rarity { background: linear-gradient(90deg, #0b0b0f, #3a3a46 50%, #0b0b0f); color: #fff; border: .4cqw solid rgba(230,230,255,.7);
+  text-shadow: 0 0 2cqw rgba(255,255,255,.8); letter-spacing: .4cqw; }
+/* Paillettes qui scintillent */
+.card.r-secrete .card-inner::before { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; border-radius: inherit;
+  background:
+    radial-gradient(circle, #fff 0 .5cqw, transparent .9cqw) 12% 18% / 30% 30% no-repeat,
+    radial-gradient(circle, #fff 0 .4cqw, transparent .8cqw) 84% 30% / 30% 30% no-repeat,
+    radial-gradient(circle, #e8e0ff 0 .6cqw, transparent 1cqw) 70% 78% / 30% 30% no-repeat,
+    radial-gradient(circle, #fff 0 .35cqw, transparent .7cqw) 22% 66% / 30% 30% no-repeat,
+    radial-gradient(circle, #d8f4ff 0 .45cqw, transparent .8cqw) 50% 10% / 30% 30% no-repeat;
+  filter: drop-shadow(0 0 1cqw #fff); animation: secret-twinkle 2.4s ease-in-out infinite; }
+@keyframes secret-twinkle { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+/* Reflet argenté qui balaie la carte */
+.card.r-secrete .card-inner::after { content: ""; position: absolute; inset: -40%; z-index: 4; pointer-events: none; mix-blend-mode: screen;
+  background: linear-gradient(115deg, transparent 42%, rgba(255,255,255,.28) 48%, rgba(200,190,255,.18) 51%, transparent 57%);
+  animation: secret-sweep 3.5s ease-in-out infinite; }
+@keyframes secret-sweep { 0% { transform: translateX(-35%); } 60%, 100% { transform: translateX(35%); } }
+.card.r-secrete.missing .card-inner, .card.r-secrete.missing .card-inner::before, .card.r-secrete.missing .card-inner::after { animation: none; }
+.card.r-secrete.missing .card-inner::before, .card.r-secrete.missing .card-inner::after { display: none; }
 /* Carte avec étoiles : la pastille est posée sur le coin, on décale un peu le nom pour ne pas le cacher */
 .card:has(.card-stars) .card-head { padding-top: 2.5cqw; }
 
