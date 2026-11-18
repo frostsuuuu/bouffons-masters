@@ -254,30 +254,39 @@ h1, h2, h3 { margin: 0; }
 @keyframes secret-sweep { 0% { transform: translateX(-35%); } 70%, 100% { transform: translateX(35%); } }
 .card.r-secrete.missing .card-inner, .card.r-secrete.missing .card-inner::before, .card.r-secrete.missing .card-inner::after { animation: none; }
 .card.r-secrete.missing .card-inner::before, .card.r-secrete.missing .card-inner::after { display: none; }
-/* Animations par rareté : Épique discrète, Légendaire plus forte (la Secrète est encore au-dessus) */
+/* Animations par rareté, chacune différente :
+   Épique = aura violette qui tourne lentement derrière la photo
+   Légendaire = rayons dorés qui tournent + braises qui montent
+   Secrète = contour qui tourne, halo multicolore, reflet holographique et paillettes */
+.card.r-epique .card-inner, .card.r-legendaire .card-inner { isolation: isolate; }
 .card.r-epique .card-inner { animation: epic-glow 3.2s ease-in-out infinite; }
 @keyframes epic-glow {
   0%, 100% { box-shadow: inset 0 0 10cqw color-mix(in srgb, var(--rc) 35%, transparent), 0 0 10cqw color-mix(in srgb, var(--rc) 55%, transparent); }
-  50% { box-shadow: inset 0 0 12cqw color-mix(in srgb, var(--rc) 45%, transparent), 0 0 16cqw color-mix(in srgb, var(--rc) 80%, transparent); } }
-.card.r-epique .card-inner::after { content: ""; position: absolute; inset: -40%; z-index: 4; pointer-events: none; mix-blend-mode: screen;
-  background: linear-gradient(115deg, transparent 44%, rgba(230,200,255,.16) 49%, transparent 54%);
-  animation: rare-sweep 6s ease-in-out infinite; }
+  50% { box-shadow: inset 0 0 12cqw color-mix(in srgb, var(--rc) 45%, transparent), 0 0 15cqw color-mix(in srgb, var(--rc) 75%, transparent); } }
+.card.r-epique .card-inner::after { content: ""; position: absolute; left: 50%; top: 50%; width: 170%; aspect-ratio: 1; z-index: -1; pointer-events: none;
+  translate: -50% -50%; mix-blend-mode: screen; opacity: 1;
+  background: conic-gradient(from 0deg, transparent 0 12%, rgba(225,160,255,.85) 25%, transparent 38% 52%, rgba(255,130,225,.75) 65%, transparent 78% 100%);
+  filter: blur(3cqw); animation: aura-spin 6s linear infinite; }
+@keyframes aura-spin { to { rotate: 360deg; } }
 
 .card.r-legendaire .card-inner { animation: legend-glow 2.4s ease-in-out infinite; }
 @keyframes legend-glow {
   0%, 100% { box-shadow: inset 0 0 10cqw color-mix(in srgb, var(--rc) 40%, transparent), 0 0 12cqw color-mix(in srgb, var(--rc) 65%, transparent); }
   50% { box-shadow: inset 0 0 14cqw color-mix(in srgb, var(--rc) 55%, transparent), 0 0 20cqw var(--rc), 0 0 34cqw color-mix(in srgb, var(--rc) 40%, transparent); } }
-.card.r-legendaire .card-inner::after { content: ""; position: absolute; inset: -40%; z-index: 4; pointer-events: none; mix-blend-mode: screen;
-  background: linear-gradient(115deg, transparent 42%, rgba(255,214,120,.22) 47%, rgba(255,255,255,.35) 49.5%, rgba(255,214,120,.22) 52%, transparent 57%);
-  animation: rare-sweep 3.6s ease-in-out infinite; }
-.card.r-legendaire .card-inner::before { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; border-radius: inherit;
+/* Rayons dorés qui tournent derrière la photo */
+.card.r-legendaire .card-inner::after { content: ""; position: absolute; left: 50%; top: 42%; width: 220%; aspect-ratio: 1; z-index: -1; pointer-events: none;
+  translate: -50% -50%; mix-blend-mode: screen;
+  background: repeating-conic-gradient(from 0deg, rgba(255,214,120,.22) 0 4deg, transparent 4deg 15deg);
+  -webkit-mask: radial-gradient(circle, transparent 8%, #000 30%, transparent 70%); mask: radial-gradient(circle, transparent 8%, #000 30%, transparent 70%);
+  animation: aura-spin 18s linear infinite; }
+/* Braises dorées qui montent */
+.card.r-legendaire .card-inner::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 200%; z-index: 3; pointer-events: none;
   background:
-    radial-gradient(circle, #fff6d8 0 .5cqw, transparent 1cqw) 14% 14% / 30% 30% no-repeat,
-    radial-gradient(circle, #fff 0 .4cqw, transparent .8cqw) 86% 26% / 30% 30% no-repeat,
-    radial-gradient(circle, #ffe7a8 0 .5cqw, transparent 1cqw) 78% 86% / 30% 30% no-repeat,
-    radial-gradient(circle, #fff 0 .35cqw, transparent .7cqw) 10% 80% / 30% 30% no-repeat;
-  filter: drop-shadow(0 0 1cqw #ffd36e); animation: secret-twinkle 2s ease-in-out infinite; }
-@keyframes rare-sweep { 0% { transform: translateX(-35%); } 55%, 100% { transform: translateX(35%); } }
+    radial-gradient(circle, #ffe7a8 0 .45cqw, transparent .8cqw) 10% 20% / 50% 25% repeat,
+    radial-gradient(circle, #fff 0 .3cqw, transparent .6cqw) 70% 60% / 45% 20% repeat,
+    radial-gradient(circle, #ffc35a 0 .4cqw, transparent .8cqw) 35% 85% / 55% 30% repeat;
+  filter: drop-shadow(0 0 .8cqw #ffb347); opacity: .85; animation: embers 5s linear infinite; }
+@keyframes embers { from { translate: 0 0; } to { translate: 0 -50%; } }
 .card.missing .card-inner { animation: none !important; }
 .card.missing .card-inner::before, .card.missing .card-inner::after { display: none !important; }
 
