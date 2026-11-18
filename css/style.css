@@ -278,7 +278,7 @@ h1, h2, h3 { margin: 0; }
   translate: -50% -50%; mix-blend-mode: screen;
   background: repeating-conic-gradient(from 0deg, rgba(255,214,120,.22) 0 4deg, transparent 4deg 15deg);
   -webkit-mask: radial-gradient(circle, transparent 8%, #000 30%, transparent 70%); mask: radial-gradient(circle, transparent 8%, #000 30%, transparent 70%);
-  animation: aura-spin 18s linear infinite; }
+  animation: aura-spin 30s linear infinite; }
 /* Braises dorées qui montent */
 .card.r-legendaire .card-inner::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 200%; z-index: 3; pointer-events: none;
   background:
