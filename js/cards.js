@@ -106,5 +106,12 @@ BM.CARDS = [
     image: "images/cousin-baveux.jpg",
     rarete: "legendaire",
     attaque: 115, defense: 105,
+  },
+  {
+    id: "josue",
+    nom: "Josué",
+    image: "images/josue.jpg",
+    rarete: "epique",
+    attaque: 74, defense: 79
   }
 ];
