@@ -13,9 +13,8 @@ BM.CONFIG = {
   /* ---------- Boosters ---------- */
   cartesParBooster: 5,
   // PHASE DE TEST : 1 booster par minute, réserve illimitée.
-  // Pour le vrai jeu, remettre par ex. rechargeMinutes: 30 et boostersMax: 3.
-  rechargeMinutes: 1,          // 1 booster gagné toutes les X minutes
-  boostersMax: null,           // nombre max en réserve (null = illimité)
+  rechargeMinutes: 20,         // 1 booster gagné toutes les X minutes
+  boostersMax: 5,              // nombre max en réserve (null = illimité)
   boostersDepart: 5,           // boosters offerts à la création du compte
   modeTest: false,             // true = boosters illimités (pratique pour tester vos cartes)
 
