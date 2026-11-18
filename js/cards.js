@@ -162,5 +162,47 @@ BM.CARDS = [
     image: "images/paul.jpg",
     rarete: "rare",
     attaque: 55, defense: 60
+  },
+  {
+    id: "oulmou",
+    nom: "Oulmou",
+    image: "images/oulmou.webp",
+    rarete: "commune",
+    attaque: 16, defense: 18
+  },
+  {
+    id: "tsm",
+    nom: "TSM",
+    image: "images/tsm.webp",
+    rarete: "commune",
+    attaque: 18, defense: 13
+  },
+  {
+    id: "frosty",
+    nom: "Frosty",
+    image: "images/frosty.webp",
+    rarete: "commune",
+    attaque: 20, defense: 17
+  },
+  {
+    id: "le-bottier",
+    nom: "Le Bottier",
+    image: "images/le-bottier.webp",
+    rarete: "commune",
+    attaque: 14, defense: 19
+  },
+  {
+    id: "laps-chose",
+    nom: "Laps Chose",
+    image: "images/laps-chose.webp",
+    rarete: "rare",
+    attaque: 47, defense: 54
+  },
+  {
+    id: "aylann",
+    nom: "Aylann",
+    image: "images/aylann.webp",
+    rarete: "commune",
+    attaque: 19, defense: 16
   }
 ];
