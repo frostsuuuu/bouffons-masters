@@ -300,7 +300,6 @@
         });
       });
     }
-    if (id === g.my_secret) return toast("C'est ta propre carte : tu n'as pas besoin de la griser.");
     local.down.has(id) ? local.down.delete(id) : local.down.add(id);
     const el = $(`.qe-card[data-card="${CSS.escape(id)}"]`);
     if (el) el.classList.toggle("down", local.down.has(id));
