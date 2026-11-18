@@ -190,13 +190,21 @@ h1, h2, h3 { margin: 0; }
 /* Carte avec étoiles : la pastille est posée sur le coin, on décale un peu le nom pour ne pas le cacher */
 .card:has(.card-stars) .card-head { padding-top: 2.5cqw; }
 
-/* Carte non obtenue = silhouette */
-.card.missing { --rc: #34305c !important; --rc2: #1d1a3a !important; --lv: 0 !important; cursor: pointer; }
-.card.missing .card-inner { background: #13112a; box-shadow: none; border-color: #2a2650; }
-.card.missing .card-art { background: rgba(255,255,255,.03); border-color: #2a2650; }
-.card.missing .card-art img { filter: brightness(0) contrast(0.6); opacity: 0.55; }
-.card.missing .card-name { color: #4c4878; }
-.card.missing .card-rarity { background: #24204a; color: #5a5690; }
+/* Carte non obtenue = silhouette aux couleurs de sa rareté (ni image, ni nom) */
+.card.missing { --lv: 0.6; cursor: pointer; }
+.card.missing .card-inner {
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--rc) 20%, transparent), color-mix(in srgb, var(--rc2) 10%, transparent) 60%, rgba(255,255,255,.02)),
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--rc) 28%, transparent) 0, transparent 62%),
+    #100e22;
+  border-color: color-mix(in srgb, var(--rc) 65%, transparent);
+  box-shadow: inset 0 0 8cqw color-mix(in srgb, var(--rc) 18%, transparent), 0 0 calc(var(--lv) * 2.7cqw) color-mix(in srgb, var(--rc) 45%, transparent);
+}
+.card.missing.r-legendaire .card-inner { border-color: color-mix(in srgb, #ffc96b 75%, transparent); }
+.card.missing .card-art { background: linear-gradient(160deg, color-mix(in srgb, var(--rc) 14%, #0c0a1c), #0c0a1c); border-color: color-mix(in srgb, var(--rc) 40%, transparent); }
+.card.missing .card-art img { visibility: hidden; } /* rien ne doit transparaître de la photo */
+.card.missing .card-name { color: color-mix(in srgb, var(--rc) 60%, #8a86b5); }
+.card.missing .card-rarity { background: color-mix(in srgb, var(--rc) 80%, #100e22); color: #0e0c1d; }
 
 /* Grille */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 22px 18px; }
