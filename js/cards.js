@@ -17,7 +17,7 @@ window.BM = window.BM || {};
 BM.CARDS = [
   {
     id: "killian-accart",
-    nom: "Killian Accart",
+    nom: "Accart",
     image: "images/killian-accart.jpg",
     rarete: "commune",
     attaque: 12, defense: 16
@@ -31,7 +31,7 @@ BM.CARDS = [
   },
   {
     id: "esteban",
-    nom: "Esteban",
+    nom: "Esté",
     image: "images/esteban.webp",
     rarete: "commune",
     attaque: 15, defense: 13
@@ -87,7 +87,7 @@ BM.CARDS = [
   },
   {
     id: "petit-nael-gilles-verdez",
-    nom: "Petit Nael x Gilles Verdez",
+    nom: "Naël x Gilles Verdez",
     image: "images/petit-nael-gilles-verdez.webp",
     rarete: "epique",
     attaque: 80, defense: 80
@@ -248,7 +248,7 @@ BM.CARDS = [
   },
   {
     id: "cerfio",
-    nom: "Cerfio",
+    nom: "Cerfion",
     image: "images/cerfio.webp",
     rarete: "epique",
     attaque: 79, defense: 76
