@@ -357,5 +357,19 @@ BM.CARDS = [
     image: "images/ritchie.jpg",
     rarete: "commune",
     attaque: 21, defense: 15
+  },
+  {
+    id: "luna",
+    nom: "Luna",
+    image: "images/luna.jpg",
+    rarete: "commune",
+    attaque: 16, defense: 19
+  },
+  {
+    id: "mimi",
+    nom: "Mimi",
+    image: "images/mimi.jpg",
+    rarete: "commune",
+    attaque: 13, defense: 21
   }
 ];
