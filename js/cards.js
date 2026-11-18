@@ -399,5 +399,33 @@ BM.CARDS = [
     image: "images/krimi-petit.webp",
     rarete: "rare",
     attaque: 48, defense: 50
+  },
+  {
+    id: "evan-enfant",
+    nom: "Evan enfant",
+    image: "images/evan-enfant.jpg",
+    rarete: "commune",
+    attaque: 18, defense: 15
+  },
+  {
+    id: "nael-enfant",
+    nom: "Nael enfant",
+    image: "images/nael-enfant.jpg",
+    rarete: "commune",
+    attaque: 15, defense: 20
+  },
+  {
+    id: "mathis-enfant",
+    nom: "Mathis enfant",
+    image: "images/mathis-enfant.jpg",
+    rarete: "commune",
+    attaque: 19, defense: 17
+  },
+  {
+    id: "tayshan-enfant",
+    nom: "Tayshan enfant",
+    image: "images/tayshan-enfant.jpg",
+    rarete: "commune",
+    attaque: 21, defense: 14
   }
 ];
