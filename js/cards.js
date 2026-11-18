@@ -253,5 +253,33 @@ BM.CARDS = [
     image: "images/solane-aviateur.jpg",
     rarete: "rare",
     attaque: 60, defense: 53
+  },
+  {
+    id: "bat",
+    nom: "Bat",
+    image: "images/bat.webp",
+    rarete: "commune",
+    attaque: 18, defense: 17
+  },
+  {
+    id: "cerfio",
+    nom: "Cerfio",
+    image: "images/cerfio.webp",
+    rarete: "epique",
+    attaque: 79, defense: 76
+  },
+  {
+    id: "evan-jonesy",
+    nom: "Evan Jonesy",
+    image: "images/evan-jonesy.webp",
+    rarete: "epique",
+    attaque: 77, defense: 81
+  },
+  {
+    id: "bebe-bat-blm",
+    nom: "Bébé Bat BLM",
+    image: "images/bebe-bat-blm.webp",
+    rarete: "rare",
+    attaque: 53, defense: 51
   }
 ];
