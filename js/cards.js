@@ -18,7 +18,7 @@ BM.CARDS = [
   {
     id: "roi-des-bouffons",
     nom: "Le Roi des Bouffons",
-    image: "",
+    image: "images/roi-des-bouffons.jpg",
     rarete: "legendaire",
     attaque: 120, defense: 100,
     emoji: "👑"
