@@ -204,5 +204,54 @@ BM.CARDS = [
     image: "images/aylann.webp",
     rarete: "commune",
     attaque: 19, defense: 16
+  },
+  {
+    id: "will",
+    nom: "Will",
+    image: "images/will.jpg",
+    rarete: "rare",
+    attaque: 58, defense: 50
+  },
+  {
+    id: "ismael",
+    nom: "Ismael",
+    image: "images/ismael.jpg",
+    rarete: "commune",
+    attaque: 22, defense: 18
+  },
+  {
+    id: "evan-linkedin",
+    nom: "Evan Linkedin",
+    image: "images/evan-linkedin.jpg",
+    rarete: "rare",
+    attaque: 50, defense: 64
+  },
+  {
+    id: "zuzurl",
+    nom: "ZuzuRL",
+    image: "images/zuzurl.jpg",
+    rarete: "rare",
+    attaque: 66, defense: 48
+  },
+  {
+    id: "evan-stade",
+    nom: "Evan stade",
+    image: "images/evan-stade.jpg",
+    rarete: "rare",
+    attaque: 54, defense: 57
+  },
+  {
+    id: "gp-vouille-gp-zennadi",
+    nom: "GP Vouille x GP Zennadi",
+    image: "images/gp-vouille-gp-zennadi.jpg",
+    rarete: "legendaire",
+    attaque: 110, defense: 118
+  },
+  {
+    id: "solane-aviateur",
+    nom: "Solane aviateur",
+    image: "images/solane-aviateur.jpg",
+    rarete: "rare",
+    attaque: 60, defense: 53
   }
 ];
