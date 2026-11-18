@@ -308,5 +308,12 @@ BM.CARDS = [
     image: "images/mikha.webp",
     rarete: "commune",
     attaque: 18, defense: 15
+  },
+  {
+    id: "adam",
+    nom: "Adam",
+    image: "images/adam.webp",
+    rarete: "commune",
+    attaque: 16, defense: 17
   }
 ];
