@@ -281,5 +281,40 @@ BM.CARDS = [
     image: "images/bebe-bat-blm.webp",
     rarete: "rare",
     attaque: 53, defense: 51
+  },
+  {
+    id: "hmd",
+    nom: "HMD",
+    image: "images/hmd.webp",
+    rarete: "commune",
+    attaque: 17, defense: 16
+  },
+  {
+    id: "nabil",
+    nom: "Nabil",
+    image: "images/nabil.webp",
+    rarete: "commune",
+    attaque: 16, defense: 19
+  },
+  {
+    id: "bebe-nael",
+    nom: "Bébé Nael",
+    image: "images/bebe-nael.webp",
+    rarete: "rare",
+    attaque: 49, defense: 52
+  },
+  {
+    id: "krimi-pipi-chien",
+    nom: "Krimi Pipi Chien",
+    image: "images/krimi-pipi-chien.webp",
+    rarete: "rare",
+    attaque: 54, defense: 45
+  },
+  {
+    id: "oulmou-buzz-cut",
+    nom: "Oulmou Buzz Cut",
+    image: "images/oulmou-buzz-cut.webp",
+    rarete: "epique",
+    attaque: 80, defense: 78
   }
 ];
