@@ -34,7 +34,7 @@
       css: ["css/style.css"],
       js: [ // L'ordre compte : réglages → cartes → sauvegarde → logique → interface
         "js/config.js", "js/supabase-config.js", "js/cards.js", "js/storage.js",
-        "js/game.js", "js/online.js", "js/app.js", "js/social.js", "js/quiestce.js", "js/maj.js"
+        "js/game.js", "js/online.js", "js/app.js", "js/social.js", "js/quiestce.js", "js/minijeux.js", "js/maj.js"
       ]
     };
     window.BM_VERSION_LOAD = Date.now();
@@ -56,7 +56,7 @@
       <a href="#collection" data-page="collection"><span class="ico"><i class="ico-binder" aria-hidden="true"></i></span><span>Collection</span></a>
       <a href="#fusion" data-page="fusion"><span class="ico"><i class="ico-star" aria-hidden="true"></i></span><span>Fusion</span><i class="nav-badge" id="fusionBadge" hidden></i></a>
       <a href="#social" data-page="social"><span class="ico"><i class="ico-social" aria-hidden="true"></i></span><span>Social</span><i class="nav-badge" id="socialBadge" hidden></i></a>
-      <a href="#quiestce" data-page="quiestce"><span class="ico"><i class="ico-qe" aria-hidden="true"></i></span><span>Qui est-ce</span><i class="nav-badge" id="qeBadge" hidden></i></a>
+      <a href="#minijeux" data-page="minijeux"><span class="ico"><i class="ico-qe" aria-hidden="true"></i></span><span>Mini-jeux</span><i class="nav-badge" id="qeBadge" hidden></i></a>
       <a href="#profil" data-page="profil"><span class="ico">👤</span><span>Profil</span></a>
     </nav>
     <div class="pill" id="boosterPill" title="Boosters disponibles"><i class="ico-pack" aria-hidden="true"></i><b id="boosterCount">0</b><span class="pill-timer" id="pillTimer" hidden></span></div>

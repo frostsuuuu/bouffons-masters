@@ -89,7 +89,7 @@
 
     app().innerHTML = `
     <section class="qe-lobby">
-      <h1 class="page-title">Qui est-ce ?</h1>
+      <div class="qe-head"><a class="btn btn-sm" href="#minijeux">‹ Mini-jeux</a><h1 class="page-title">Qui est-ce ?</h1></div>
       <p class="muted">Défie un ami en 1 contre 1 : 24 cartes de ta collection, chacun choisit la sienne, et vous posez vos questions en vocal.</p>
 
       ${invites.length ? `

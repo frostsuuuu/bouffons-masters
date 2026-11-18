@@ -47,7 +47,12 @@ BM.Online = (function () {
     QE_MAUVAISE_ETAPE: "Ce n'est plus le moment de choisir ta carte.",
     QE_DEJA_CHOISI: "Tu as déjà choisi ta carte.",
     QE_CARTE_INVALIDE: "Cette carte ne fait pas partie de la partie.",
-    QE_PAS_TON_TOUR: "Ce n'est pas ton tour."
+    QE_PAS_TON_TOUR: "Ce n'est pas ton tour.",
+    MM_PAS_TON_TOUR: "Ce n'est pas ton tour.",
+    MM_INTROUVABLE: "Cette partie n'existe plus.",
+    MM_DEJA_TRAITEE: "Cette invitation a déjà été traitée.",
+    MM_CARTE_INVALIDE: "Cette carte ne peut pas être retournée.",
+    MM_GRILLE: "Grille inconnue."
   };
   function err(code, raw) {
     const e = new Error(MESSAGES[code] || raw || "Erreur du serveur.");
@@ -213,6 +218,7 @@ BM.Online = (function () {
     const t = await q(sb.from("trades").select("id").eq("to_id", row.id).eq("status", "pending"));
     incoming = (t || []).length;
     try { qeGames = (await q(sb.rpc("qe_list"))) || []; } catch (e) { /* fonction absente : on ignore */ }
+    try { mmGames = (await q(sb.rpc("mm_list"))) || []; } catch (e) { /* idem */ }
     return true;
   }
 
@@ -326,8 +332,22 @@ BM.Online = (function () {
     get games() { return qeGames; }
   };
 
+  /* ---------- Mini-jeu Memory (1 contre 1) ---------- */
+  let mmGames = [];
+  const mmWaiting = () => mmGames.filter((g) => (g.status === "invite" && g.role === "guest") || (g.status === "play" && g.my_turn)).length;
+  const mm = {
+    list: async () => { await ready(); mmGames = (await q(sb.rpc("mm_list"))) || []; return mmGames; },
+    invite: (guest, pairs) => qeCall("mm_invite", { p_guest: guest, p_pairs: pairs }),
+    respond: (id, accept) => qeCall("mm_respond", { p_game: id, p_accept: accept }),
+    quit: (id) => qeCall("mm_quit", { p_game: id }),
+    flip: (id, index) => qeCall("mm_flip", { p_game: id, p_index: index }),
+    state: (id) => qeCall("mm_state", { p_game: id }),
+    get waiting() { return mmWaiting(); },
+    get games() { return mmGames; }
+  };
+
   return {
-    qe,
+    qe, mm,
     configured, init, ready, signup, flush, openBooster, fuse, setVitrine, pushStats, refresh,
     findByPseudo, getPlayer, social, addFriend, removeFriend, isFriend, playerFriends, myFriendIds,
     trades, proposeTrade, acceptTrade, closeTrade,
