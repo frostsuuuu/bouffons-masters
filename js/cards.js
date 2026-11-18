@@ -155,5 +155,12 @@ BM.CARDS = [
     image: "images/mr-laouer.webp",
     rarete: "rare",
     attaque: 51, defense: 50
+  },
+  {
+    id: "paul-vrai-calvitie",
+    nom: "Paul vrai calvitie",
+    image: "images/paul.jpg",
+    rarete: "rare",
+    attaque: 55, defense: 60
   }
 ];
