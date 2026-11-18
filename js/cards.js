@@ -257,8 +257,8 @@ BM.CARDS = [
     id: "evan-jonesy",
     nom: "Evan Jonesy",
     image: "images/evan-jonesy.webp",
-    rarete: "epique",
-    attaque: 77, defense: 81
+    rarete: "rare",
+    attaque: 51, defense: 55
   },
   {
     id: "bebe-bat-blm",
@@ -292,8 +292,8 @@ BM.CARDS = [
     id: "krimi-pipi-chien",
     nom: "Krimi Pipi Chien",
     image: "images/krimi-pipi-chien.webp",
-    rarete: "rare",
-    attaque: 54, defense: 45
+    rarete: "epique",
+    attaque: 82, defense: 73
   },
   {
     id: "oulmou-buzz-cut",
