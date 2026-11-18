@@ -329,5 +329,19 @@ BM.CARDS = [
     image: "images/frosty-baillone.jpg",
     rarete: "rare",
     attaque: 49, defense: 58
+  },
+  {
+    id: "maxence-lahont",
+    nom: "Maxence Lahont",
+    image: "images/maxence-lahont.jpg",
+    rarete: "rare",
+    attaque: 53, defense: 56
+  },
+  {
+    id: "evan-leon",
+    nom: "Evan Léon",
+    image: "images/evan-leon.jpg",
+    rarete: "rare",
+    attaque: 61, defense: 47
   }
 ];
