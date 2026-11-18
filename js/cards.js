@@ -113,5 +113,47 @@ BM.CARDS = [
     image: "images/josue.jpg",
     rarete: "epique",
     attaque: 74, defense: 79
+  },
+  {
+    id: "yass-merguez",
+    nom: "Yass Merguez",
+    image: "images/yass-merguez.webp",
+    rarete: "rare",
+    attaque: 55, defense: 49
+  },
+  {
+    id: "krimi-jeu-des-memes",
+    nom: "Krimi Jeu des Mèmes",
+    image: "images/krimi-jeu-des-memes.webp",
+    rarete: "legendaire",
+    attaque: 115, defense: 108
+  },
+  {
+    id: "massy",
+    nom: "Massy",
+    image: "images/massy.webp",
+    rarete: "commune",
+    attaque: 17, defense: 15
+  },
+  {
+    id: "quentin-bedo",
+    nom: "Quentin Bédo",
+    image: "images/quentin-bedo.webp",
+    rarete: "rare",
+    attaque: 46, defense: 53
+  },
+  {
+    id: "tony-draou-bossu",
+    nom: "Tony Draou Bossu",
+    image: "images/tony-draou-bossu.webp",
+    rarete: "epique",
+    attaque: 81, defense: 70
+  },
+  {
+    id: "mr-laouer",
+    nom: "Mr. Laouer",
+    image: "images/mr-laouer.webp",
+    rarete: "rare",
+    attaque: 51, defense: 50
   }
 ];
