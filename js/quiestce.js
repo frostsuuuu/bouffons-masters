@@ -194,7 +194,7 @@
     if (g.status === "done") {
       if (ev.type === "abandon") return `<div class="qe-banner ${g.winner === "me" ? "win" : "lose"}">${evBy === "me" ? "Tu as abandonné." : `<b>${o}</b> a abandonné : tu gagnes ! 🏆`}</div>`;
       return g.winner === "me"
-        ? `<div class="qe-banner win">🏆 <b>Gagné !</b> Tu as trouvé la carte de ${o} : <b>${esc(card(g.opp_secret).nom)}</b>.</div>`
+        ? `<div class="qe-banner win">🏆 <b>Gagné !</b> Tu as trouvé la carte de ${o} : <b>${esc(card(g.opp_secret).nom)}</b>. 🎁 +1 pack récompense ! <button class="btn btn-primary btn-sm" data-gift>Ouvrir</button></div>`
         : `<div class="qe-banner lose">😵 <b>Perdu…</b> ${o} a trouvé ta carte. La sienne était <b>${esc(card(g.opp_secret).nom)}</b>.</div>`;
     }
     // en jeu

@@ -30,6 +30,12 @@
   const gridOf = (pairs) => LEVELS.find((l) => l.pairs === pairs) || LEVELS[0];
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
+  // Bouton « Ouvrir » du pack gagné (Memory 1v1 et Qui est-ce ?)
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("[data-gift]")) return;
+    O.refresh().catch(() => {}).then(() => BM.UI.showRewardPack());
+  });
+
   let poll = null;
   const stopPoll = () => { clearInterval(poll); poll = null; };
   window.addEventListener("hashchange", () => stopPoll());
@@ -79,11 +85,11 @@
       <div class="mj-games">
         <a class="mj-game" href="#memory-solo">
           <span class="mj-ico">🎯</span>
-          <span class="mj-txt"><b>Solo</b><span>5 niveaux, de 12 à 36 cartes, avec un nombre d'erreurs limité. Arrête-toi quand tu veux pour garder ta récompense.</span></span>
+          <span class="mj-txt"><b>Solo</b><span>5 niveaux, de 12 à 36 cartes, avec un nombre d'erreurs limité. Arrête-toi après un niveau pour gagner un pack récompense.</span></span>
         </a>
         <a class="mj-game" href="#memory-multi">
           <span class="mj-ico">⚔️</span>
-          <span class="mj-txt"><b>1 contre 1</b><span>Choisis la grille et défie un ami. Chacun son tour : une paire trouvée, tu rejoues. Le plus de paires gagne.</span></span>
+          <span class="mj-txt"><b>1 contre 1</b><span>Choisis la grille et défie un ami. Chacun son tour : une paire trouvée, tu rejoues. Le gagnant reçoit un pack récompense.</span></span>
           ${O.mm && O.mm.waiting ? `<i class="nav-badge">${O.mm.waiting}</i>` : ""}
         </a>
       </div>
@@ -92,12 +98,53 @@
 
   /* =========================================================
      MEMORY SOLO
+     En ligne, la grille est sur le serveur (impossible de tricher pour gagner des packs).
+     Hors ligne, même règles en local, sans récompense.
+     Vue d'une série : { id, level, done, status: play|cleared|over, pairs, max_errors, errors,
+                         matched: {index: carte}, pending: {i, card}, last: {i, j, ci, cj, match}, reward }
      ========================================================= */
-  let solo = null; // { lv, deck, open:[], matched:Set, coups, errors, lock, started }
+  const online = () => !!(O.isOn && O.isOn());
+  const packCards = (done) => done + 2; // pack si on s'arrête après « done » niveaux réussis
 
-  function renderSolo() {
-    if (!solo) return drawSoloStart();
+  // Version locale (hors ligne), mêmes réponses que le serveur
+  const Local = (() => {
+    let r = null;
+    const view = () => JSON.parse(JSON.stringify({ id: "local", level: r.level, done: r.done, status: r.status, pairs: LEVELS[r.level - 1].pairs,
+      max_errors: LEVELS[r.level - 1].coups, errors: r.errors, matched: Object.fromEntries(r.matched.map((i) => [i, r.layout[i]])),
+      pending: r.pending == null ? null : { i: r.pending, card: r.layout[r.pending] }, last: r.last, reward: r.reward }));
+    const layout = (l) => { const ids = shuffle(BM.CARDS.map((c) => c.id)).slice(0, LEVELS[l - 1].pairs); return shuffle([...ids, ...ids]); };
+    const finish = (win) => { r.reward = win && r.done >= 1 ? packCards(r.done) : 0; r.status = "over"; r.pending = null; };
+    return {
+      get: async () => (r && r.status !== "over" ? view() : null),
+      start: async () => { r = { level: 1, done: 0, status: "play", layout: layout(1), matched: [], pending: null, errors: 0, last: null, reward: 0 }; return view(); },
+      flip: async (_, i) => {
+        if (r.status !== "play" || r.matched.includes(i) || r.pending === i) throw new Error("Cette carte ne peut pas être retournée.");
+        if (r.pending == null) { r.pending = i; r.last = null; return view(); }
+        const j = r.pending, ok = r.layout[i] === r.layout[j];
+        r.last = { i: j, j: i, ci: r.layout[j], cj: r.layout[i], match: ok }; r.pending = null;
+        if (ok) r.matched.push(j, i); else r.errors++;
+        if (r.matched.length === r.layout.length) { r.done = r.level; r.status = "cleared"; if (r.level >= 5) finish(true); }
+        else if (r.errors >= LEVELS[r.level - 1].coups) finish(false);
+        return view();
+      },
+      next: async () => { r.level++; Object.assign(r, { status: "play", layout: layout(r.level), matched: [], pending: null, errors: 0, last: null }); return view(); },
+      stop: async () => { if (r.status !== "over") finish(r.status === "cleared"); return view(); }
+    };
+  })();
+  const API = () => (online() ? O.mm.solo : Local);
+
+  let sv = null;       // série en cours
+  let soloBusy = false;
+
+  async function renderSolo() {
+    if (!sv || sv.status === "over") {
+      app().innerHTML = `<section><h1 class="page-title">Memory solo</h1><div class="empty loading-box"><span class="spinner"></span> Chargement…</div></section>`;
+      try { sv = await API().get(); } catch (e) { sv = null; }
+      if (BM.UI.currentPage !== "memory-solo") return;
+    }
+    if (!sv) return drawSoloStart();
     drawSolo();
+    if (sv.status === "cleared") levelWon();
   }
 
   function drawSoloStart() {
@@ -106,99 +153,131 @@
       <div class="qe-head"><a class="btn btn-sm" href="#memory">‹ Memory</a><h1 class="page-title">Memory solo</h1></div>
       <div class="panel">
         <h2>5 niveaux</h2>
-        <p class="muted">Chaque niveau réussi te débloque une récompense plus grosse. Après chaque niveau, tu choisis : <b>t'arrêter</b> et garder ta récompense, ou <b>continuer</b>… mais si tu échoues, tu perds tout.</p>
+        <p class="muted">Après chaque niveau réussi, tu choisis : <b>t'arrêter</b> et gagner un pack récompense, ou <b>continuer</b> pour un pack plus gros… mais si tu perds, tu n'as rien.</p>
         <div class="mm-levels">${LEVELS.map((l, i) => `
-          <div class="mm-level"><b>Niveau ${i + 1}</b><span>${l.cols}×${l.rows} · ${l.pairs * 2} cartes</span><span>${l.coups} coups (erreurs)</span><em class="d${i}">${DIFF[i]}</em></div>`).join("")}</div>
-        <p class="muted small">Une paire trouvée ne coûte rien : seul un essai raté (2 cartes différentes) te coûte un coup. Récompenses : bientôt !</p>
+          <div class="mm-level"><b>Niveau ${i + 1}</b><span>${l.cols}×${l.rows} · ${l.pairs * 2} cartes</span><span>${l.coups} erreurs permises</span><span class="mm-gift">🎁 ${packCards(i + 1)} cartes</span><em class="d${i}">${DIFF[i]}</em></div>`).join("")}</div>
+        <p class="muted small">Une paire trouvée ne coûte rien : seul un essai raté te coûte un coup. Le pack récompense a 25 % de chances en plus d'avoir des cartes rares.${online() ? "" : " <b>Hors ligne : pas de récompense.</b>"}</p>
         <button class="btn btn-primary btn-wide" id="mmStart">▶ Commencer le niveau 1</button>
       </div>
     </section>`;
-    $("#mmStart").addEventListener("click", () => startLevel(0));
+    $("#mmStart").addEventListener("click", async (e) => {
+      e.target.disabled = true;
+      try { sv = await API().start(); drawSolo(); } catch (err) { toast(esc(err.message), "bad"); e.target.disabled = false; }
+    });
   }
 
-  function startLevel(lv) {
-    const L = LEVELS[lv];
-    const ids = shuffle(BM.CARDS.map((c) => c.id)).slice(0, L.pairs);
-    solo = { lv, deck: shuffle([...ids, ...ids]), open: [], matched: new Set(), coups: 0, errors: 0, lock: false };
-    drawSolo();
+  function hudUpdate() {
+    const left = sv.max_errors - sv.errors;
+    const el = $("#mmLeft"); if (el) { el.textContent = left; el.parentElement.classList.toggle("warn", left <= 3); }
+    const p = $("#mmPairs"); if (p) p.textContent = `${Object.keys(sv.matched).length / 2} / ${sv.pairs}`;
   }
 
   function drawSolo() {
-    const L = LEVELS[solo.lv];
-    const left = L.coups - solo.coups;
+    const lv = sv.level - 1, L = LEVELS[lv];
+    const left = sv.max_errors - sv.errors;
     app().innerHTML = `
-    <section class="mm-play">
-      <div class="qe-head"><a class="btn btn-sm" href="#memory">‹ Memory</a><h1 class="page-title">Niveau ${solo.lv + 1} <span class="muted">· ${DIFF[solo.lv]}</span></h1></div>
+    <section class="mm-play is-my-turn">
+      <div class="qe-head"><a class="btn btn-sm" href="#memory">‹ Memory</a><h1 class="page-title">Niveau ${sv.level} <span class="muted">· ${DIFF[lv]}</span></h1></div>
       <div class="mm-hud">
-        <span class="mm-stat"><span>Paires</span><b>${solo.matched.size / 2} / ${L.pairs}</b></span>
+        <span class="mm-stat"><span>Paires</span><b id="mmPairs">${Object.keys(sv.matched).length / 2} / ${sv.pairs}</b></span>
         <span class="mm-stat ${left <= 3 ? "warn" : ""}"><span>Coups restants</span><b id="mmLeft">${left}</b></span>
-        <span class="mm-steps">${LEVELS.map((_, i) => `<i class="${i < solo.lv ? "ok" : i === solo.lv ? "now" : ""}">${i + 1}</i>`).join("")}</span>
+        <span class="mm-steps">${LEVELS.map((_, i) => `<i class="${i < sv.done ? "ok" : i === lv ? "now" : ""}">${i + 1}</i>`).join("")}</span>
+        <button class="btn btn-sm qe-quit" id="mmGiveUp">Abandonner</button>
       </div>
-      <div class="mm-board" style="${boardStyle(L)}">${solo.deck.map((id, i) =>
-        tileHTML(i, id, (solo.matched.has(i) ? "flipped matched" : "") + (solo.open.includes(i) ? " flipped" : ""))).join("")}</div>
+      <div class="mm-board" style="${boardStyle(L)}">${Array.from({ length: L.pairs * 2 }, (_, i) => {
+        const m = sv.matched[i], pd = sv.pending && sv.pending.i === i ? sv.pending.card : null;
+        return tileHTML(i, m || pd, m ? "flipped matched" : pd ? "flipped" : "");
+      }).join("")}</div>
     </section>`;
     $$(".mm-board .mm-tile").forEach((b) => b.addEventListener("click", () => soloFlip(+b.dataset.i)));
+    $("#mmGiveUp").addEventListener("click", () => {
+      BM.UI.openModal(`<div class="confirm"><p>Abandonner ce niveau ? Tu ne gagneras rien.</p><div class="pull-actions"><button class="btn" data-no>Non</button><button class="btn btn-primary" data-yes>Oui</button></div></div>`);
+      $("#modalContent [data-no]").addEventListener("click", BM.UI.closeModal);
+      $("#modalContent [data-yes]").addEventListener("click", async () => { BM.UI.closeModal(); try { await API().stop(sv.id); } catch (e) {} sv = null; drawSoloStart(); });
+    });
   }
 
-  function soloFlip(i) {
-    if (!solo || solo.lock || solo.matched.has(i) || solo.open.includes(i)) return;
-    solo.open.push(i);
-    $(`.mm-tile[data-i="${i}"]`).classList.add("flipped");
-    if (solo.open.length < 2) return;
-    const [a, b] = solo.open;
-    const L = LEVELS[solo.lv];
-    if (solo.deck[a] === solo.deck[b]) {
-      solo.matched.add(a); solo.matched.add(b); solo.open = [];
-      setTimeout(() => { $$(`.mm-tile[data-i="${a}"], .mm-tile[data-i="${b}"]`).forEach((t) => t.classList.add("matched")); }, 350);
-      if (solo.matched.size === solo.deck.length) return setTimeout(() => { drawSolo(); levelWon(); }, 700);
-    } else {
-      solo.coups++; solo.errors++;
-      solo.lock = true;
-      setTimeout(() => {
-        $$(`.mm-tile[data-i="${a}"], .mm-tile[data-i="${b}"]`).forEach((t) => t.classList.remove("flipped"));
-        solo.open = []; solo.lock = false;
-        if (solo.coups >= L.coups) { drawSolo(); levelLost(); }
-      }, 900);
-    }
-    const left = L.coups - solo.coups;
-    const el = $("#mmLeft"); if (el) { el.textContent = left; el.parentElement.classList.toggle("warn", left <= 3); }
-    const p = $(".mm-stat b"); if (p) p.textContent = `${solo.matched.size / 2} / ${L.pairs}`;
+  function showFace(i, cardId) {
+    const t = $(`.mm-tile[data-i="${i}"]`);
+    if (!t) return;
+    $(".mm-front", t).innerHTML = cardHTML(card(cardId), {});
+    t.classList.remove("loading");
+    void t.offsetWidth;
+    t.classList.add("flipped");
   }
+
+  async function soloFlip(i) {
+    if (!sv || sv.status !== "play" || soloBusy || sv.matched[i] || (sv.pending && sv.pending.i === i)) return;
+    soloBusy = true;
+    const t = $(`.mm-tile[data-i="${i}"]`); if (t) t.classList.add("loading");
+    let r;
+    try { r = await API().flip(sv.id, i); }
+    catch (e) { toast(esc(e.message), "bad"); if (t) t.classList.remove("loading"); soloBusy = false; return; }
+    sv = r;
+    if (BM.UI.currentPage !== "memory-solo") { soloBusy = false; return; }
+    if (r.pending) { showFace(i, r.pending.card); soloBusy = false; return; }
+    const lp = r.last;
+    showFace(i, i === lp.j ? lp.cj : lp.ci);
+    hudUpdate();
+    if (lp.match) {
+      setTimeout(() => $$(`.mm-tile[data-i="${lp.i}"], .mm-tile[data-i="${lp.j}"]`).forEach((x) => x.classList.add("matched")), 350);
+      soloBusy = false;
+      if (r.status !== "play") setTimeout(() => (r.status === "over" ? soloFinished() : levelWon()), 750);
+      return;
+    }
+    setTimeout(() => {
+      $$(`.mm-tile[data-i="${lp.i}"], .mm-tile[data-i="${lp.j}"]`).forEach((x) => x.classList.remove("flipped"));
+      soloBusy = false;
+      if (r.status === "over") soloFinished();
+    }, 900);
+  }
+
+  const giftLine = (n) => `<div class="mm-reward">🎁 Pack récompense : <b>${n} cartes</b> <span class="muted small" style="white-space:nowrap">(chance +25 %)</span></div>`;
+  const openGift = () => { BM.UI.closeModal(); sv = null; BM.UI.showRewardPack(); };
 
   function levelWon() {
-    const lv = solo.lv, last = lv === LEVELS.length - 1, L = LEVELS[lv];
+    const lv = sv.level - 1, nx = LEVELS[lv + 1];
     BM.UI.openModal(`
       <div class="confirm mm-result win">
         <div class="mm-big">🏆</div>
-        <h2>${last ? "Memory terminé !" : `Niveau ${lv + 1} réussi !`}</h2>
-        <p class="muted">${L.pairs} paires trouvées avec ${solo.errors} erreur${solo.errors > 1 ? "s" : ""} sur ${L.coups} permises.</p>
-        <div class="mm-reward">🎁 Récompense du niveau ${lv + 1} : <b>bientôt disponible</b></div>
-        ${last ? `<p>Tu as réussi les 5 niveaux. Respect.</p>` : `<p>Tu t'arrêtes et tu gardes ta récompense, ou tu tentes le niveau ${lv + 2} (${LEVELS[lv + 1].pairs * 2} cartes, ${LEVELS[lv + 1].coups} erreurs permises) ? Si tu échoues, tu perds tout.</p>`}
+        <h2>Niveau ${sv.level} réussi !</h2>
+        <p class="muted">${sv.pairs} paires avec ${sv.errors} erreur${sv.errors > 1 ? "s" : ""} sur ${sv.max_errors} permises.</p>
+        ${online() ? `<p>Si tu t'arrêtes maintenant :</p>${giftLine(packCards(sv.done))}
+        <p>Ou tente le niveau ${sv.level + 1} (${nx.pairs * 2} cartes, ${nx.coups} erreurs permises) pour un pack de <b>${packCards(sv.done + 1)} cartes</b>… mais si tu perds, tu n'as rien.</p>`
+          : `<p>Tu t'arrêtes là ou tu tentes le niveau ${sv.level + 1} (${nx.pairs * 2} cartes, ${nx.coups} erreurs permises) ?</p>`}
         <div class="pull-actions">
-          <button class="btn" data-stop>🏁 ${last ? "Terminer" : "M'arrêter là"}</button>
-          ${last ? "" : `<button class="btn btn-primary" data-next>▶ Niveau ${lv + 2}</button>`}
+          <button class="btn" data-stop>🏁 M'arrêter là</button>
+          <button class="btn btn-primary" data-next>▶ Niveau ${sv.level + 1}</button>
         </div>
       </div>`);
-    $("#modalContent [data-stop]").addEventListener("click", () => {
-      BM.UI.closeModal();
-      toast(`Tu t'arrêtes au niveau ${lv + 1}. Bien joué !`);
-      solo = null; drawSoloStart();
+    $("#modalContent [data-stop]").addEventListener("click", async (e) => {
+      e.target.disabled = true;
+      try { sv = await API().stop(sv.id); } catch (err) { toast(esc(err.message), "bad"); e.target.disabled = false; return; }
+      soloFinished(true);
     });
-    const nx = $("#modalContent [data-next]");
-    if (nx) nx.addEventListener("click", () => { BM.UI.closeModal(); startLevel(lv + 1); });
+    $("#modalContent [data-next]").addEventListener("click", async (e) => {
+      e.target.disabled = true;
+      try { sv = await API().next(sv.id); BM.UI.closeModal(); drawSolo(); } catch (err) { toast(esc(err.message), "bad"); e.target.disabled = false; }
+    });
   }
 
-  function levelLost() {
-    const lv = solo.lv;
+  // Fin de série : arrêt volontaire, 5 niveaux réussis, ou perdu
+  function soloFinished(stopped) {
+    const won = sv.reward > 0 || sv.done >= 5 || stopped;
+    const all = sv.done >= 5;
     BM.UI.openModal(`
-      <div class="confirm mm-result lose">
-        <div class="mm-big">💥</div>
-        <h2>Plus de coups !</h2>
-        <p class="muted">Niveau ${lv + 1} raté : ${solo.matched.size / 2} paire${solo.matched.size > 2 ? "s" : ""} sur ${LEVELS[lv].pairs}.${lv > 0 ? " Tu perds les récompenses de la série." : ""}</p>
-        <div class="pull-actions"><button class="btn" data-back>Retour</button><button class="btn btn-primary" data-again>🔁 Recommencer au niveau 1</button></div>
+      <div class="confirm mm-result ${won ? "win" : "lose"}">
+        <div class="mm-big">${all ? "👑" : won ? "🎁" : "💥"}</div>
+        <h2>${all ? "Memory terminé !" : won ? `Tu t'arrêtes au niveau ${sv.done}` : "Plus de coups !"}</h2>
+        <p class="muted">${all ? "Les 5 niveaux réussis. Respect." : won ? `${sv.done} niveau${sv.done > 1 ? "x" : ""} réussi${sv.done > 1 ? "s" : ""}. Bien joué !` : `Niveau ${sv.level} raté : tu n'as rien gagné cette fois.`}</p>
+        ${sv.reward ? giftLine(sv.reward) : ""}
+        <div class="pull-actions">
+          <button class="btn" data-again>🔁 Rejouer</button>
+          ${sv.reward ? `<button class="btn btn-primary" data-open>🎁 Ouvrir mon pack</button>` : ""}
+        </div>
       </div>`);
-    $("#modalContent [data-back]").addEventListener("click", () => { BM.UI.closeModal(); solo = null; drawSoloStart(); });
-    $("#modalContent [data-again]").addEventListener("click", () => { BM.UI.closeModal(); startLevel(0); });
+    $("#modalContent [data-again]").addEventListener("click", () => { BM.UI.closeModal(); sv = null; drawSoloStart(); });
+    const op = $("#modalContent [data-open]"); if (op) op.addEventListener("click", openGift);
   }
 
   /* =========================================================
@@ -266,7 +345,7 @@
           <div class="qe-row"><span class="av">${initial(p.pseudo)}</span><span class="qe-row-txt"><b>${esc(p.pseudo)}</b></span>
             ${busyWith.has(p.id) ? `<span class="muted small">partie en cours</span>` : `<button class="btn btn-primary btn-sm" data-invite="${p.id}">⚔️ Défier</button>`}</div>`).join("")}</div>`
           : `<p class="muted">Ajoute d'abord des amis dans l'onglet <a href="#social">Social</a>.</p>`}
-        <p class="muted small">Récompenses selon la grille : bientôt !</p>
+        <p class="muted small">🎁 Le gagnant reçoit un pack récompense de 5 cartes (chance +25 %). Pas de récompense pour une victoire par abandon.</p>
       </div>
       ${past.length ? `<div class="panel"><h2>Dernières parties</h2><div class="qe-list">${past.map((g) => `
         <div class="qe-row is-past"><span class="av">${initial(g.opponent.pseudo)}</span><span class="qe-row-txt">${mmStatus(g)}</span></div>`).join("")}</div></div>` : ""}
@@ -339,7 +418,7 @@
       : `<div class="qe-banner hot"><b>${o}</b> t'invite (${gridLabel(g.pairs)}). <button class="btn btn-sm" data-decline>Refuser</button> <button class="btn btn-primary btn-sm" data-accept>✓ Jouer</button></div>`;
     else if (g.status === "done") banner = g.last_event && g.last_event.type === "abandon"
       ? `<div class="qe-banner ${g.winner === "me" ? "win" : "lose"}">${g.winner === "me" ? `<b>${o}</b> a abandonné : tu gagnes ! 🏆` : "Tu as abandonné."}</div>`
-      : `<div class="qe-banner ${g.winner === "me" ? "win" : g.winner === "tie" ? "wait" : "lose"}">${g.winner === "me" ? "🏆 <b>Gagné !</b>" : g.winner === "tie" ? "🤝 <b>Égalité !</b>" : "😵 <b>Perdu…</b>"} ${g.my_score} paire${g.my_score > 1 ? "s" : ""} contre ${g.opp_score}. <span class="muted">Récompense : bientôt</span></div>`;
+      : `<div class="qe-banner ${g.winner === "me" ? "win" : g.winner === "tie" ? "wait" : "lose"}">${g.winner === "me" ? "🏆 <b>Gagné !</b>" : g.winner === "tie" ? "🤝 <b>Égalité !</b>" : "😵 <b>Perdu…</b>"} ${g.my_score} paire${g.my_score > 1 ? "s" : ""} contre ${g.opp_score}.${g.winner === "me" ? ` 🎁 +1 pack récompense ! <button class="btn btn-primary btn-sm" data-gift>Ouvrir</button>` : ""}</div>`;
     else {
       const info = lp && lp.seq === g.seq ? (lp.match ? (lp.by === "me" ? " Paire trouvée, tu rejoues !" : ` ${o} a trouvé une paire et rejoue.`) : (lp.by === "me" ? " Raté !" : ` ${o} s'est trompé.`)) : "";
       banner = g.my_turn

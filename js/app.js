@@ -129,27 +129,30 @@
     };
   })();
 
-  function packFaceHTML() {
+  function packFaceHTML(kind) {
+    const rw = kind === "reward";
+    const next = BM.Online.rewardPacks[0];
     return `
-      <div class="pf">
+      <div class="pf${rw ? " pf-reward" : ""}">
         <div class="pf-wisps"></div>
         <div class="pf-stars"></div>
         <div class="pf-energy"></div>
         <div class="pf-crimp pf-crimp-top"></div>
         <div class="pf-logo"></div>
-        <div class="pf-ribbon">BOOSTER · ${C.cartesParBooster} CARTES</div>
+        <div class="pf-ribbon">${rw ? (next ? `RÉCOMPENSE · ${next.n} CARTES` : "PACK RÉCOMPENSE") : `BOOSTER · ${C.cartesParBooster} CARTES`}</div>
+        ${rw ? `<div class="pf-luck">CHANCE +25 %</div>` : ""}
         <div class="pf-pillow"></div>
         <div class="pf-gloss"></div>
         <div class="pf-crimp pf-crimp-bottom"></div>
       </div>`;
   }
 
-  function packHTML(locked) {
+  function packHTML(locked, kind = "normal", main = true) {
     return `
-      <div class="pack3d ${locked ? "locked" : ""}" id="pack">
+      <div class="pack3d ${locked ? "locked" : ""}"${main ? ' id="pack"' : ""}>
         <div class="pk-tilt">
-          <div class="pk pk-body" style="clip-path:${PACK_CLIPS.body}">${packFaceHTML()}</div>
-          <div class="pk pk-cap" style="clip-path:${PACK_CLIPS.cap}">${packFaceHTML()}</div>
+          <div class="pk pk-body" style="clip-path:${PACK_CLIPS.body}">${packFaceHTML(kind)}</div>
+          <div class="pk pk-cap" style="clip-path:${PACK_CLIPS.cap}">${packFaceHTML(kind)}</div>
           <div class="pk-tear" style="top:${TEAR_Y}%"><span>✂</span></div>
           ${locked ? `<div class="pk-lock">🔒</div>` : ""}
         </div>
@@ -178,8 +181,9 @@
 
   // idle = true : écran du booster fermé. Le bouton « Ouvrir le booster » est exactement là où sera
   // ensuite le bouton pour faire défiler les cartes : on n'a jamais besoin de bouger la souris.
-  function stackUiHTML(idle) {
-    const n = idle ? C.cartesParBooster || 5 : pull.results.length;
+  function stackUiHTML(idle, kind) {
+    const rw = kind === "reward";
+    const n = idle ? (rw && BM.Online.rewardPacks[0] ? BM.Online.rewardPacks[0].n : C.cartesParBooster || 5) : pull.results.length;
     return `
       <div class="stack-ui${idle ? " idle-ui" : ""}" id="stackUi">
         <div class="stack-nav">
@@ -187,27 +191,42 @@
           <div class="dots">${Array.from({ length: n }, (_, i) => `<i data-dot="${i}"></i>`).join("")}</div>
           <button class="round-btn" id="nextBtn" aria-label="Carte suivante">›</button>
         </div>
-        <button class="btn btn-primary btn-wide" id="mainBtn">${idle ? '<i class="ico-pack" aria-hidden="true"></i>Ouvrir le booster' : ""}</button>
-        <p class="muted small hint-text">${idle ? "Touche le booster ou le bouton pour l'ouvrir" : C.retournementAuto ? "Touche la carte pour la voir en grand · flèche ou bouton pour passer à la suivante" : "Touche la carte pour la retourner, puis pour la voir en grand · flèche ou bouton pour passer à la suivante"}</p>
+        <button class="btn btn-primary btn-wide" id="mainBtn">${idle ? `<i class="ico-pack" aria-hidden="true"></i>${rw ? "Ouvrir le pack récompense" : "Ouvrir le booster"}` : ""}</button>
+        <p class="muted small hint-text">${idle ? (wheelPacks().length > 1 ? "Touche le pack ou le bouton pour l'ouvrir · glisse ou touche un pack sur le côté pour changer" : "Touche le booster ou le bouton pour l'ouvrir") : C.retournementAuto ? "Touche la carte pour la voir en grand · flèche ou bouton pour passer à la suivante" : "Touche la carte pour la retourner, puis pour la voir en grand · flèche ou bouton pour passer à la suivante"}</p>
       </div>`;
   }
 
   function renderBooster() {
     if (pull && !pull.opening) return pull.done ? renderRecap() : renderStack();
     pull = null;
-    const left = G.boostersLeft();
+    const packs = wheelPacks();
+    if (wheelSel >= packs.length) wheelSel = 0;
+    const kind = packs[wheelSel];
+    const left = packLeft(kind);
     const locked = left === 0;
+    const rw = BM.Online.rewardPacks;
+    let top, hint;
+    if (kind === "reward") {
+      top = locked ? `Aucun pack récompense pour l'instant`
+        : `<b>${left}</b> pack${left > 1 ? "s" : ""} récompense · <b>${rw[0].n}</b> cartes`;
+      hint = `Gagne un 1 contre 1 ou arrête-toi après un niveau du Memory solo pour en gagner. <a href="#minijeux">Mini-jeux</a>`;
+    } else {
+      top = locked ? `Prochain booster dans <b class="cd" data-countdown>${clock(G.msUntilNext())}</b>`
+        : `<b>${leftLabel(left)}</b> booster${left > 1 ? "s" : ""} disponible${left > 1 ? "s" : ""}`;
+      hint = `Un nouveau booster toutes les ${C.rechargeMinutes} minute${C.rechargeMinutes > 1 ? "s" : ""}${G.unlimited() ? "" : ` (jusqu'à ${C.boostersMax} en réserve)`}.`;
+    }
     app.innerHTML = `
-    <section class="booster-page reveal">
-      <p class="counter" id="topLine">${locked
-        ? `Prochain booster dans <b class="cd" data-countdown>${clock(G.msUntilNext())}</b>`
-        : `<b>${leftLabel(left)}</b> booster${left > 1 ? "s" : ""} disponible${left > 1 ? "s" : ""}`}</p>
-      <div class="stage idle${locked ? "" : " ready"}" id="stage">${packHTML(locked)}</div>
-      ${locked
-        ? `<p class="muted small pack-hint" id="packHint">Un nouveau booster toutes les ${C.rechargeMinutes} minute${C.rechargeMinutes > 1 ? "s" : ""}${G.unlimited() ? "" : ` (jusqu'à ${C.boostersMax} en réserve)`}.</p>`
-        : stackUiHTML(true)}
+    <section class="booster-page reveal${packs.length > 1 ? " has-wheel" : ""}">
+      <p class="counter" id="topLine">${top}</p>
+      <div class="stage idle${locked ? "" : " ready"}" id="stage">${packs.map((k, i) => {
+        const n = packLeft(k);
+        return `<div class="wheel-item${i === wheelSel ? " is-main" : ""} wk-${k}" data-w="${i}">${packHTML(n === 0, k, i === wheelSel)}${
+          i !== wheelSel && n > 0 && k === "reward" ? `<i class="wheel-count">${n}</i>` : ""}</div>`;
+      }).join("")}</div>
+      ${locked ? `<p class="muted small pack-hint" id="packHint">${hint}</p>` : stackUiHTML(true, kind)}
     </section>`;
 
+    bindWheel();
     const pack = $("#pack");
     if (locked) return;
     // Petit effet 3D quand la souris bouge sur le paquet
@@ -224,12 +243,95 @@
     $("#mainBtn").addEventListener("click", () => openPack());
   }
 
+  /* ---------- Roue des packs : booster normal / pack récompense ---------- */
+  // Le pack du milieu est celui qu'on ouvre. On change en cliquant sur un pack sur le côté,
+  // ou en faisant glisser la roue (souris ou doigt).
+  let wheelSel = 0;
+  const wheelPacks = () => (BM.Online.configured() && G.state.account ? ["normal", "reward"] : ["normal"]);
+  const packLeft = (k) => (k === "reward" ? BM.Online.rewardPacks.length : G.boostersLeft());
+  const wheelStep = () => (innerWidth < 640 ? 0.8 : 0.92); // écart entre deux packs (en largeur de pack)
+  function placeWheel(offset, animate) {
+    $$("#stage .wheel-item").forEach((el) => {
+      const d = +el.dataset.w - wheelSel + offset, a = Math.min(Math.abs(d), 1.4);
+      el.style.transition = animate ? "transform .38s cubic-bezier(.25,.8,.3,1), opacity .38s, filter .38s" : "none";
+      el.style.transform = d ? `translateX(${d * wheelStep() * 100}%) scale(${1 - 0.42 * Math.min(a, 1)})` : "";
+      el.style.opacity = d ? 1 - 0.3 * Math.min(a, 1) : "";
+      el.style.zIndex = Math.round(60 - a * 20);
+      el.classList.toggle("is-side", Math.abs(d) > 0.5);
+    });
+  }
+  function selectPack(i) {
+    const n = wheelPacks().length;
+    i = Math.max(0, Math.min(n - 1, i));
+    if (i === wheelSel) return placeWheel(0, true);
+    placeWheel(wheelSel - i, true);
+    const id = seq;
+    setTimeout(() => { if (id !== seq || pull || currentPage !== "booster") return; wheelSel = i; renderBooster(); }, 380);
+  }
+  let wdrag = null, wBlockClick = 0; // glissement de la roue en cours
+  addEventListener("pointermove", (e) => {
+    const stage = $("#stage");
+    if (!wdrag || pull || !stage) return;
+    const dx = e.clientX - wdrag.x;
+    if (!wdrag.moved && Math.abs(dx) < 8) return;
+    if (!wdrag.moved) { wdrag.moved = true; stage.classList.add("dragging"); }
+    let off = dx / wdrag.w;
+    // résistance au bout de la roue
+    const n = wheelPacks().length, min = wheelSel - (n - 1), max = wheelSel;
+    if (off > max) off = max + (off - max) * 0.3;
+    if (off < min) off = min + (off - min) * 0.3;
+    wdrag.off = off;
+    placeWheel(off, false);
+  });
+  const wheelEnd = () => {
+    if (!wdrag) return;
+    const d = wdrag; wdrag = null;
+    const stage = $("#stage");
+    if (stage) stage.classList.remove("dragging");
+    if (!d.moved || pull) return;
+    wBlockClick = Date.now() + 300; // ce n'était pas un clic
+    selectPack(Math.round(wheelSel - d.off));
+  };
+  addEventListener("pointerup", wheelEnd);
+  addEventListener("pointercancel", wheelEnd);
+  function bindWheel() {
+    const stage = $("#stage");
+    if (!stage || wheelPacks().length < 2) return;
+    placeWheel(0, false);
+    stage.addEventListener("pointerdown", (e) => {
+      if (pull || (e.pointerType === "mouse" && e.button !== 0)) return;
+      wdrag = { x: e.clientX, w: stage.offsetWidth * wheelStep(), off: 0, moved: false };
+    });
+    // Clic : sur un pack sur le côté → il passe au milieu. Après un glissement : rien.
+    stage.addEventListener("click", (e) => {
+      if (Date.now() < wBlockClick) { e.stopPropagation(); e.preventDefault(); return; }
+      const side = e.target.closest(".wheel-item:not(.is-main)");
+      if (side && !pull) { e.stopPropagation(); selectPack(+side.dataset.w); }
+    }, true);
+  }
+
   /* ---------- Ouverture : déchirure → cartes qui sortent → pile ---------- */
   let asking = false; // demande d'ouverture en cours auprès du serveur
   async function openPack() {
     if (pull || asking || !$("#pack")) return; // déjà en cours d'ouverture
     let res;
-    if (BM.Online.configured() && G.state.account) {
+    const kind = wheelPacks()[wheelSel] || "normal";
+    if (kind === "reward") {
+      asking = true;
+      const btn = $("#mainBtn");
+      if (btn) { btn.disabled = true; btn.textContent = "Ouverture…"; }
+      try { res = G.applyServerBooster(await BM.Online.openReward()); }
+      catch (e) {
+        asking = false;
+        toast(esc(e.message || e), "bad");
+        await BM.Online.refresh().catch(() => {});
+        if (currentPage === "booster") renderBooster();
+        return;
+      }
+      asking = false;
+      if (!$("#pack") || currentPage !== "booster") { updateChrome(); return; }
+      if (btn) btn.disabled = false;
+    } else if (BM.Online.configured() && G.state.account) {
       // En ligne : c'est le serveur qui tire les cartes (anti-triche)
       asking = true;
       const btn = $("#mainBtn");
@@ -252,7 +354,8 @@
     if (!res) return renderBooster();
     const id = ++seq;
     const alive = () => id === seq && $("#stage");
-    pull = { results: res, index: 0, flipped: new Set(), done: false, opening: true };
+    pull = { results: res, index: 0, flipped: new Set(), done: false, opening: true, kind };
+    $$("#stage .wheel-item:not(.is-main)").forEach((el) => el.classList.add("wheel-gone"));
     lastAdvance = 0;
     updateChrome();
     afterBooster();
@@ -517,11 +620,12 @@
 
   /* ---------- Récapitulatif du booster ---------- */
   function renderRecap(anim) {
-    const left = G.boostersLeft();
+    const rwKind = pull.kind === "reward";
+    const left = rwKind ? BM.Online.rewardPacks.length : G.boostersLeft();
     const nouveaux = pull.results.filter((x) => x.isNew).length;
     app.innerHTML = `
     <section class="booster-page">
-      <h1 class="page-title">Ton booster</h1>
+      <h1 class="page-title">${rwKind ? "Ton pack récompense" : "Ton booster"}</h1>
       <p class="muted">${nouveaux
         ? `<b>${nouveaux}</b> nouvelle${nouveaux > 1 ? "s" : ""} carte${nouveaux > 1 ? "s" : ""} ! Touche une carte pour la voir en grand.`
         : `Que des doublons… pense à la <a href="#fusion">fusion</a> !`}</p>
@@ -529,14 +633,16 @@
         ${pull.results.map((x, i) => `<div class="recap-item" style="--d:${i * 0.07}s">${cardHTML(x.card, { isNew: x.isNew })}</div>`).join("")}
       </div>
       <div class="pull-actions">
-        ${left > 0 ? `<button class="btn btn-primary" id="again"><i class="ico-pack" aria-hidden="true"></i>Booster suivant (${leftLabel(left)})</button>`
-          : `<span class="muted">Prochain booster dans <b data-countdown>${clock(G.msUntilNext())}</b></span>`}
+        ${left > 0 ? `<button class="btn btn-primary" id="again"><i class="ico-pack" aria-hidden="true"></i>${rwKind ? `Pack récompense suivant (${left})` : `Booster suivant (${leftLabel(left)})`}</button>`
+          : rwKind ? `<button class="btn" id="toNormal">Revenir aux boosters</button>` : `<span class="muted">Prochain booster dans <b data-countdown>${clock(G.msUntilNext())}</b></span>`}
         <a class="btn" href="#collection">Voir ma collection</a>
       </div>
     </section>`;
     $$(".recap .card").forEach((el) => el.addEventListener("click", () => openCardModal(el.dataset.card)));
     const again = $("#again");
     if (again) again.addEventListener("click", () => { pull = null; renderBooster(); openPack(); });
+    const toNormal = $("#toNormal");
+    if (toNormal) toNormal.addEventListener("click", () => { pull = null; wheelSel = 0; renderBooster(); });
   }
 
   /* ---------- Effets spéciaux ---------- */
@@ -1215,7 +1321,9 @@
     prefixPage(prefix, fn) { prefixPages[prefix] = fn; },
     openModal(html) { $("#modalContent").innerHTML = html; $("#modal").hidden = false; document.body.classList.add("no-scroll"); },
     get app() { return app; },
-    get currentPage() { return currentPage; }
+    get currentPage() { return currentPage; },
+    // Ouvre la page Booster avec le pack récompense au milieu de la roue
+    showRewardPack() { wheelSel = Math.max(0, wheelPacks().indexOf("reward")); pull = null; if (location.hash === "#booster") renderBooster(); else location.hash = "#booster"; }
   };
   window.addEventListener("hashchange", () => {
     closeModal();
@@ -1252,9 +1360,9 @@
   setInterval(() => {
     const ms = G.msUntilNext();
     $$("[data-countdown]").forEach((el) => (el.textContent = clock(ms)));
-    const left = G.boostersLeft();
+    const left = G.boostersLeft() + "/" + BM.Online.rewardPacks.length;
     updateChrome();
-    if (lastLeft !== null && left !== lastLeft && currentPage === "booster" && !pull) render();
+    if (lastLeft !== null && left !== lastLeft && currentPage === "booster" && !pull && !$("#stage.dragging")) render();
     lastLeft = left;
   }, 1000);
 

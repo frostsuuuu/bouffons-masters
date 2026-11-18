@@ -52,7 +52,8 @@ BM.Online = (function () {
     MM_INTROUVABLE: "Cette partie n'existe plus.",
     MM_DEJA_TRAITEE: "Cette invitation a déjà été traitée.",
     MM_CARTE_INVALIDE: "Cette carte ne peut pas être retournée.",
-    MM_GRILLE: "Grille inconnue."
+    MM_GRILLE: "Grille inconnue.",
+    PAS_DE_PACK_RECOMPENSE: "Tu n'as pas de pack récompense : gagne des mini-jeux pour en obtenir !"
   };
   function err(code, raw) {
     const e = new Error(MESSAGES[code] || raw || "Erreur du serveur.");
@@ -318,6 +319,17 @@ BM.Online = (function () {
     (g.status === "invite" && g.role === "guest") || (g.status === "choose" && !g.my_secret) || (g.status === "play" && g.my_turn)).length;
   async function qeList() { await ready(); qeGames = (await q(sb.rpc("qe_list"))) || []; return qeGames; }
   async function qeCall(fn, args) { await ready(); return q(sb.rpc(fn, args)); }
+
+  /* ---------- Packs récompense (gagnés dans les mini-jeux) ---------- */
+  // Liste des packs pas encore ouverts : [{ n: nombre de cartes, src }]
+  const rewardPacks = () => (player && Array.isArray(player.reward_packs) ? player.reward_packs : []);
+  async function openReward() {
+    await ready();
+    if (!player) throw err("PAS_DE_COMPTE");
+    const r = await q(sb.rpc("open_reward_pack"));
+    if (r && player) player.reward_packs = r.reward_packs || [];
+    return r;
+  }
   const qe = {
     list: qeList,
     invite: (guest) => qeCall("qe_invite", { p_guest: guest }),
@@ -343,12 +355,20 @@ BM.Online = (function () {
     flip: (id, index) => qeCall("mm_flip", { p_game: id, p_index: index }),
     state: (id) => qeCall("mm_state", { p_game: id }),
     get waiting() { return mmWaiting(); },
+    // Memory solo : la grille reste sur le serveur
+    solo: {
+      get: () => qeCall("mm_solo_get"),
+      start: () => qeCall("mm_solo_start"),
+      flip: (id, index) => qeCall("mm_solo_flip", { p_id: id, p_index: index }),
+      next: (id) => qeCall("mm_solo_next", { p_id: id }),
+      stop: async (id) => { const r = await qeCall("mm_solo_stop", { p_id: id }); if (r && r.reward) await refresh().catch(() => {}); return r; }
+    },
     get games() { return mmGames; }
   };
 
   return {
     qe, mm,
-    configured, init, ready, signup, flush, openBooster, fuse, setVitrine, pushStats, refresh,
+    configured, init, ready, signup, flush, openBooster, openReward, get rewardPacks() { return rewardPacks(); }, fuse, setVitrine, pushStats, refresh,
     findByPseudo, getPlayer, social, addFriend, removeFriend, isFriend, playerFriends, myFriendIds,
     trades, proposeTrade, acceptTrade, closeTrade,
     get status() { return status; },
