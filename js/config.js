@@ -11,7 +11,7 @@ BM.CONFIG = {
   nomDuJeu: "Bouffons Masters",
 
   /* ---------- Boosters ---------- */
-  cartesParBooster: 3,
+  cartesParBooster: 5,
   // PHASE DE TEST : 1 booster par minute, réserve illimitée.
   // Pour le vrai jeu, remettre par ex. rechargeMinutes: 30 et boostersMax: 3.
   rechargeMinutes: 1,          // 1 booster gagné toutes les X minutes
