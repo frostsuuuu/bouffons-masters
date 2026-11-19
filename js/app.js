@@ -294,10 +294,18 @@
   };
   addEventListener("pointerup", wheelEnd);
   addEventListener("pointercancel", wheelEnd);
+  // Toutes les animations en boucle des packs (flottement, reflet, ciseaux) suivent la même horloge :
+  // quand on change de pack, elles continuent exactement où elles en étaient, sans repartir de zéro.
+  function syncPackAnims(root) {
+    if (!root.getAnimations || !document.timeline) return;
+    root.getAnimations({ subtree: true }).forEach((a) => {
+      if (a instanceof CSSAnimation && a.effect && a.effect.getTiming().iterations === Infinity) a.startTime = 0;
+    });
+  }
   function bindWheel() {
     const stage = $("#stage");
     if (!stage || wheelPacks().length < 2) return;
-    stage.style.setProperty("--fd", `-${Math.round(performance.now() % 3200)}ms`); // flottement : on reprend là où il en était
+    syncPackAnims(stage);
     placeWheel(0, false);
     stage.addEventListener("pointerdown", (e) => {
       if (pull || (e.pointerType === "mouse" && e.button !== 0)) return;

@@ -1038,8 +1038,6 @@ em.d0 { color: #3ee08f; } em.d1 { color: #3fa9ff; } em.d2 { color: #c05cff; } em
 .booster-page.has-wheel { overflow-x: clip; }
 .wheel-item { position: absolute; inset: 0; z-index: 60; pointer-events: none; transform-origin: 50% 55%; }
 .wheel-item .pack3d { pointer-events: auto; }
-/* Même phase de flottement pour tous les packs, même après avoir changé de pack (pas de saut) */
-.wheel-item .pack3d { animation-delay: var(--fd, 0s) !important; }
 /* Même hauteur de scène que le pack soit verrouillé ou non : rien ne bouge quand on change */
 .has-wheel .stage.idle { margin-bottom: 70px; }
 @media (max-width: 700px) { .has-wheel .stage.idle { margin-bottom: 64px; } .has-wheel .counter { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }
