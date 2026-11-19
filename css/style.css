@@ -1067,3 +1067,24 @@ em.d0 { color: #3ee08f; } em.d1 { color: #3fa9ff; } em.d2 { color: #c05cff; } em
 .pf-luck { position: absolute; left: 50%; top: 13%; transform: translateX(-50%); z-index: 3; white-space: nowrap; padding: 1.4cqw 4cqw; border-radius: 99px;
   font: 800 4cqw var(--font); letter-spacing: .5cqw; color: #2a1000; background: linear-gradient(135deg, #ffe08a, #ffa726); box-shadow: 0 1cqw 3cqw rgba(0,0,0,.5); }
 .mm-gift { color: #ffd36e; font-weight: 700; }
+
+/* Bouton « Taux » à droite des packs + fenêtre des taux */
+.booster-page { position: relative; }
+.rates-btn { position: absolute; top: 46px; left: calc(50% + min(300px, 76vw) * 1.32); z-index: 5;
+  display: grid; justify-items: center; gap: 1px; width: 58px; padding: 9px 0 7px; border: 0; border-radius: 14px; cursor: pointer;
+  color: var(--text, #fff); font: inherit; background: rgba(255,255,255,.06); box-shadow: inset 0 0 0 1px var(--line); transition: background .2s, transform .2s; }
+.rates-btn b { font-size: 20px; line-height: 1; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.rates-btn span { font-size: 11px; font-weight: 700; opacity: .75; }
+.rates-btn:hover { background: rgba(255,255,255,.12); transform: translateY(-2px); }
+.booster-page:not(.has-wheel) .rates-btn { left: calc(50% + min(300px, 76vw) * 0.62); }
+@media (max-width: 760px) { .rates-btn, .booster-page:not(.has-wheel) .rates-btn { left: auto; right: 0; top: -4px; width: 46px; padding: 6px 0 5px; } .rates-btn b { font-size: 17px; } .booster-page .counter { padding: 0 50px; } }
+.rates-box { text-align: center; }
+.rates-box h2 { margin: 0 0 4px; }
+.rates-luck { color: #ffd36e; }
+.rates-table { width: 100%; border-collapse: collapse; margin: 14px 0 8px; text-align: left; }
+.rates-table th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; opacity: .65; font-weight: 700; padding: 6px 10px; }
+.rates-table td { padding: 9px 10px; border-top: 1px solid var(--line); }
+.rates-table td:not(:first-child), .rates-table th:not(:first-child) { text-align: right; }
+.rates-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 8px; background: var(--rc); box-shadow: 0 0 8px var(--rc); vertical-align: -1px; }
+.rates-up { color: #3ee08f; opacity: .85; white-space: nowrap; }
+.rates-table td:first-child { white-space: nowrap; }

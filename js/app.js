@@ -224,8 +224,10 @@
           i !== wheelSel && n > 0 && k === "reward" ? `<i class="wheel-count">${n}</i>` : ""}</div>`;
       }).join("")}</div>
       ${locked ? `<p class="muted small pack-hint" id="packHint">${hint}</p>` : stackUiHTML(true, kind)}
+      <button class="rates-btn" id="ratesBtn" title="Taux de rareté de ce pack"><b>%</b><span>Taux</span></button>
     </section>`;
 
+    $("#ratesBtn").addEventListener("click", () => showRates(wheelPacks()[wheelSel] || "normal"));
     bindWheel();
     const pack = $("#pack");
     if (locked) return;
@@ -241,6 +243,43 @@
     pack.addEventListener("pointerleave", () => { tilt.style.transform = ""; });
     pack.addEventListener("click", () => openPack());
     $("#mainBtn").addEventListener("click", () => openPack());
+  }
+
+  /* ---------- Taux de rareté du pack au milieu de la roue ---------- */
+  // Mêmes calculs que le serveur : poids de config.js, raretés sans carte ignorées,
+  // pack récompense = toutes les raretés au-dessus de Commune × 1,25.
+  const REWARD_BOOST = 1.25;
+  function packRates(boost, minId) {
+    const av = G.availableRarities();
+    const minI = minId ? G.rarityIndex(minId) : -1;
+    let pool = av.filter((r) => G.rarityIndex(r.id) >= minI);
+    if (!pool.length) pool = av;
+    const w = pool.map((r) => r.poids * (G.rarityIndex(r.id) > 0 ? boost : 1));
+    const total = w.reduce((a, b) => a + b, 0) || 1;
+    return Object.fromEntries(pool.map((r, i) => [r.id, (w[i] / total) * 100]));
+  }
+  const pct = (x) => (x == null ? "—" : x === 0 ? "0 %" : x < 1 ? x.toFixed(2).replace(".", ",") + " %" : x.toFixed(1).replace(".", ",").replace(",0", "") + " %");
+  function showRates(kind) {
+    const rw = kind === "reward";
+    const boost = rw ? REWARD_BOOST : 1;
+    const n = rw ? (BM.Online.rewardPacks[0] ? BM.Online.rewardPacks[0].n : null) : C.cartesParBooster;
+    const g = C.garantieDerniereCarte;
+    const each = packRates(boost), last = packRates(boost, g);
+    const base = rw ? packRates(1) : null;
+    BM.UI.openModal(`
+      <div class="rates-box">
+        <h2>${rw ? "🎁 Pack récompense" : "Booster normal"}</h2>
+        <p class="muted">${n ? `${n} cartes` : "3 à 7 cartes selon le mini-jeu"}${rw ? " · <b class=\"rates-luck\">chance +25 %</b> sur toutes les raretés au-dessus de Commune" : ""}</p>
+        <table class="rates-table">
+          <thead><tr><th>Rareté</th><th>Chaque carte</th>${g ? `<th>Dernière carte</th>` : ""}</tr></thead>
+          <tbody>${G.availableRarities().map((r) => `
+            <tr><td><span class="rates-dot" style="--rc:${r.couleur}"></span>${esc(r.nom)}</td>
+              <td><b>${pct(each[r.id])}</b>${base && G.rarityIndex(r.id) > 0 ? ` <small class="rates-up">au lieu de ${pct(base[r.id])}</small>` : ""}</td>
+              ${g ? `<td>${last[r.id] == null ? `<span class="muted">—</span>` : `<b>${pct(last[r.id])}</b>`}</td>` : ""}</tr>`).join("")}
+          </tbody>
+        </table>
+        ${g ? `<p class="muted small">La dernière carte du pack est toujours ${esc(G.rarity(g).nom)} ou mieux.</p>` : ""}
+      </div>`);
   }
 
   /* ---------- Roue des packs : booster normal / pack récompense ---------- */
