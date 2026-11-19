@@ -297,6 +297,7 @@
   function bindWheel() {
     const stage = $("#stage");
     if (!stage || wheelPacks().length < 2) return;
+    stage.style.setProperty("--fd", `-${Math.round(performance.now() % 3200)}ms`); // flottement : on reprend là où il en était
     placeWheel(0, false);
     stage.addEventListener("pointerdown", (e) => {
       if (pull || (e.pointerType === "mouse" && e.button !== 0)) return;

@@ -460,7 +460,8 @@ body.shake main { animation: shake 0.45s; }
    OUVERTURE : PAQUET DE CARTES
    ========================================================= */
 .reveal { display: flex; flex-direction: column; align-items: center; }
-.counter { color: var(--muted); font-weight: 700; margin: 4px 0 18px; letter-spacing: .5px; }
+.counter { color: var(--muted); font-weight: 700; margin: 4px 0 18px; letter-spacing: .5px; line-height: 28px; min-height: 28px; }
+.counter b { line-height: 1; }
 .counter b { color: #3ee08f; font-size: 1.25em; }
 .stage { --w: min(300px, 76vw); z-index: 1; transition: margin-bottom .6s; position: relative; width: var(--w); aspect-ratio: 5 / 7; margin-bottom: 70px; perspective: 1500px; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 .stage .slot { position: absolute; inset: 0; transition: transform .5s cubic-bezier(.2,.8,.2,1), opacity .45s, filter .4s; cursor: pointer; will-change: transform; }
@@ -1037,7 +1038,11 @@ em.d0 { color: #3ee08f; } em.d1 { color: #3fa9ff; } em.d2 { color: #c05cff; } em
 .booster-page.has-wheel { overflow-x: clip; }
 .wheel-item { position: absolute; inset: 0; z-index: 60; pointer-events: none; transform-origin: 50% 55%; }
 .wheel-item .pack3d { pointer-events: auto; }
-.wheel-item.is-side .pack3d { animation: none; }
+/* Même phase de flottement pour tous les packs, même après avoir changé de pack (pas de saut) */
+.wheel-item .pack3d { animation-delay: var(--fd, 0s) !important; }
+/* Même hauteur de scène que le pack soit verrouillé ou non : rien ne bouge quand on change */
+.has-wheel .stage.idle { margin-bottom: 70px; }
+@media (max-width: 700px) { .has-wheel .stage.idle { margin-bottom: 64px; } .has-wheel .counter { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }
 .wheel-item.is-side .pack3d:not(.locked) { filter: drop-shadow(0 16px 18px rgba(0,0,0,.55)) brightness(.8); }
 .wheel-item.is-side:hover .pack3d { filter: drop-shadow(0 16px 22px rgba(0,0,0,.6)) brightness(1); }
 .wheel-item.is-side .pack3d.locked { filter: grayscale(.85) brightness(.4); }
