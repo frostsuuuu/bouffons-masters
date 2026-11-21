@@ -100,7 +100,7 @@
     const b = $("#fusionBadge");
     b.hidden = nf === 0;
     b.textContent = nf;
-    $$(".nav a").forEach((a) => a.classList.toggle("active", a.dataset.page === currentPage || (a.dataset.page === "social" && /^(joueur|echange)-/.test(currentPage)) || (a.dataset.page === "minijeux" && /^(qe-|mm-|quiestce$|memory)/.test(currentPage))));
+    $$(".nav a").forEach((a) => a.classList.toggle("active", a.dataset.page === currentPage || (a.dataset.page === "social" && /^(joueur|echange)-/.test(currentPage)) || (a.dataset.page === "minijeux" && /^(qe-|mm-|quiestce$|memory|tour$)/.test(currentPage))));
   }
 
   /* =========================================================
@@ -1390,7 +1390,7 @@
     try {
       await BM.Online.refresh();
       const qw = BM.Online.qe.waiting + BM.Online.mm.waiting;
-      if (qw > lastQe && !/^(qe-|mm-|quiestce$|memory|minijeux$)/.test(currentPage)) toast("🎮 Mini-jeux : une partie t'attend !");
+      if (qw > lastQe && !/^(qe-|mm-|quiestce$|memory|minijeux$|tour$)/.test(currentPage)) toast("🎮 Mini-jeux : une partie t'attend !");
       lastQe = qw;
       const sig = JSON.stringify([G.state.collection, G.state.vitrine, BM.Online.incoming]);
       const changed = sig !== lastSync;

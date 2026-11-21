@@ -1109,3 +1109,78 @@ em.d0 { color: #3ee08f; } em.d1 { color: #3fa9ff; } em.d2 { color: #c05cff; } em
   .nav-badge { right: 14%; top: 2px; }
 }
 @media (max-width: 350px) { .nav a { font-size: 9.5px; } }
+
+/* ===================== TOUR INFERNALE ===================== */
+.tour-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 12px 0 16px; }
+.tour-team { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 12px 0 16px; }
+.tour-slot { position: relative; aspect-ratio: 5 / 7; border-radius: 14px; display: grid; place-items: center; background: rgba(255,255,255,.03); box-shadow: inset 0 0 0 2px var(--line); }
+.tour-slot:not(.full) { border: 2px dashed rgba(255,255,255,.12); box-shadow: none; }
+.tour-slot.full { cursor: pointer; background: none; box-shadow: none; }
+.tour-slot .card { width: 100%; }
+.tour-empty { opacity: .45; font-weight: 700; font-size: 14px; }
+.tour-num { position: absolute; top: -8px; left: -8px; z-index: 6; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+  font-weight: 900; font-size: 14px; color: #fff; background: var(--grad); box-shadow: 0 0 0 3px #0b0a17; }
+.tour-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.tour-opt { position: relative; cursor: pointer; transition: transform .15s; }
+.tour-opt.on .card { outline: 3px solid var(--pink); outline-offset: 3px; border-radius: 12px; }
+.tour-opt:not(.on):hover { transform: translateY(-3px); }
+
+.tour-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.tour-floor { display: flex; align-items: baseline; gap: 6px; font-weight: 800; }
+.tour-floor span { opacity: .6; font-size: 14px; }
+.tour-floor b { font-size: 34px; background: linear-gradient(135deg, #ffd36e, #ff3c6a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.tour-speed { display: flex; gap: 6px; }
+.tour-speed .btn.on { background: rgba(123,92,255,.3); box-shadow: inset 0 0 0 1.5px rgba(123,92,255,.9); }
+.tour-arena { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; max-width: 760px; margin: 0 auto; }
+.tour-side { display: grid; gap: 10px; justify-items: center; }
+.tour-label { font-weight: 700; font-size: 14px; text-align: center; min-height: 20px; }
+.tour-card { position: relative; width: min(280px, 100%); }
+.tour-card .card { width: 100%; cursor: default; }
+.tour-card .card:hover { transform: none; }
+.tour-vs { font: 900 30px var(--font); background: linear-gradient(135deg, #ff3c6a, #ffa726); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.tour-hp { position: relative; width: min(280px, 100%); height: 24px; border-radius: 99px; overflow: hidden; background: rgba(255,255,255,.08); box-shadow: inset 0 0 0 1px var(--line); }
+.tour-hp i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #26c27a, #3ee08f); transition: width .35s ease; border-radius: 99px; }
+.tour-hp i.mid { background: linear-gradient(90deg, #e8a21c, #ffd36e); }
+.tour-hp i.low { background: linear-gradient(90deg, #d42a52, #ff3c6a); }
+.tour-hp b { position: relative; display: block; text-align: center; line-height: 24px; font-size: 13px; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
+.tour-bench { display: flex; justify-content: center; gap: 10px; margin: 22px auto 8px; }
+.tour-mini { position: relative; width: 64px; }
+.tour-mini .card { width: 100%; cursor: default; }
+.tour-mini > i { position: absolute; left: 4px; bottom: -8px; height: 4px; max-width: calc(100% - 8px); border-radius: 4px; background: #3ee08f; transition: width .35s; }
+.tour-mini.now { transform: translateY(-6px); }
+.tour-mini.now .card { outline: 2px solid var(--pink); outline-offset: 2px; border-radius: 8px; }
+.tour-mini.dead { filter: grayscale(1) brightness(.45); }
+.tour-mini.dead::after { content: "✖"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 26px; color: #ff3c6a; }
+.tour-log { text-align: center; min-height: 22px; margin-top: 14px; }
+
+/* Animations du combat */
+.tour-card.lunge-r { animation: t-lunge-r .42s ease; }
+.tour-card.lunge-l { animation: t-lunge-l .42s ease; }
+.tour-card.hurt { animation: t-hurt .42s ease; }
+.tour-card.hurt .card { filter: brightness(1.4) saturate(.6) drop-shadow(0 0 18px rgba(255,60,106,.9)); }
+.tour-card.ko { animation: t-ko .7s ease forwards; }
+.tour-card.enter-r { animation: t-enter-r .5s cubic-bezier(.2,.8,.3,1.1); }
+.tour-card.enter-l { animation: t-enter-l .5s cubic-bezier(.2,.8,.3,1.1); }
+@keyframes t-lunge-r { 0%, 100% { transform: none; } 40% { transform: translateX(18%) rotate(4deg) scale(1.04); } }
+@keyframes t-lunge-l { 0%, 100% { transform: none; } 40% { transform: translateX(-18%) rotate(-4deg) scale(1.04); } }
+@keyframes t-hurt { 0%, 100% { transform: none; } 20% { transform: translateX(-5%) rotate(-2deg); } 45% { transform: translateX(5%) rotate(2deg); } 70% { transform: translateX(-2%); } }
+@keyframes t-ko { to { transform: translateY(18%) rotate(8deg) scale(.85); opacity: 0; filter: grayscale(1); } }
+@keyframes t-enter-r { from { transform: translateX(40%); opacity: 0; } }
+@keyframes t-enter-l { from { transform: translateX(-40%); opacity: 0; } }
+.tour-dmg { position: absolute; left: 50%; top: 35%; z-index: 20; transform: translateX(-50%); white-space: nowrap; pointer-events: none;
+  font: 900 34px var(--font); color: #fff; text-shadow: 0 0 6px #ff3c6a, 0 3px 0 #8a0d2b, 0 0 20px rgba(255,60,106,.8); animation: t-dmg 1s ease-out forwards; }
+.tour-dmg.crit { color: #ffd36e; font-size: 30px; text-shadow: 0 0 6px #ffa726, 0 3px 0 #7a3c00, 0 0 22px rgba(255,167,38,.9); }
+@keyframes t-dmg { 0% { opacity: 0; transform: translate(-50%, 10px) scale(.7); } 15% { opacity: 1; transform: translate(-50%, 0) scale(1.15); } 100% { opacity: 0; transform: translate(-50%, -60px) scale(1); } }
+
+@media (max-width: 640px) {
+  .tour-team { gap: 6px; }
+  .tour-num { width: 22px; height: 22px; font-size: 12px; top: -6px; left: -6px; }
+  .tour-grid { grid-template-columns: repeat(3, 1fr); }
+  .tour-arena { gap: 6px; }
+  .tour-vs { font-size: 18px; }
+  .tour-hp { height: 20px; } .tour-hp b { line-height: 20px; font-size: 11px; }
+  .tour-label { font-size: 12px; }
+  .tour-label .muted { display: none; }
+  .tour-mini { width: 48px; }
+  .tour-dmg { font-size: 24px; } .tour-dmg.crit { font-size: 20px; }
+}

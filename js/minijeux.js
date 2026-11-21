@@ -64,6 +64,10 @@
           <span class="mj-txt"><b>Qui est-ce ?</b><span>1 contre 1 avec un ami, en vocal. Devine sa carte avant qu'il trouve la tienne.</span></span>
           ${qw ? `<i class="nav-badge">${qw}</i>` : ""}
         </a>
+        <a class="mj-game mj-tour" href="#tour">
+          <span class="mj-ico">🗼</span>
+          <span class="mj-txt"><b>Tour Infernale</b><span>Tes 5 meilleures cartes affrontent toutes les cartes du jeu, de la plus faible à la plus forte. Jusqu'où iras-tu ?</span></span>
+        </a>
         <a class="mj-game mj-mm" href="#memory">
           <span class="mj-ico">🧠</span>
           <span class="mj-txt"><b>Memory</b><span>Retrouve les paires. En solo sur 5 niveaux, ou en 1 contre 1.</span></span>
