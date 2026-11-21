@@ -94,8 +94,16 @@
       ${rest.length ? `<div class="tour-rank">${rest.map((r, i) => `
         <div class="tour-row ${r.me ? "me" : ""}"><span class="tour-pos">${i + 2}</span><b class="tour-name">${esc(r.pseudo)}</b><span class="tour-fl">Étage ${r.floor}</span>${teamMini(r.team)}</div>`).join("")}</div>` : ""}`;
   }
+  function rewardInfo() {
+    if (!online()) return "🎁 Récompenses : connecte-toi au serveur.";
+    return `🎁 Pack récompense selon l'étage : 10 → 3 cartes, 20 → 4 … 70 → 9, tour finie → 10. Une montée récompensée toutes les 2 h${nextReward > Date.now() ? ` · <b>prochaine ${nextLabel()}</b>` : " · <b>disponible</b>"}.`;
+  }
   async function loadBoard() {
     if (!online()) return;
+    BM.Online.tour.status().then((st) => {
+      nextReward = st && st.next_reward_at ? Date.parse(st.next_reward_at) : 0;
+      const el = $("#tourRewardInfo"); if (el) el.innerHTML = rewardInfo();
+    }).catch(() => {});
     try { board = await BM.Online.tour.top(10); } catch (e) { board = board || []; }
     const mineRec = (board || []).find((r) => r.me);
     if (mineRec && mineRec.floor > load(KEY_BEST, 0)) { store(KEY_BEST, mineRec.floor); if (BM.UI.currentPage === "tour" && !run) return renderPick(); }
@@ -119,7 +127,7 @@
         <span class="mm-stat"><span>Étages</span><b>${total}</b></span>
         <span class="muted small">Après l'étage ${BM.CARDS.filter((c) => G.statsAt(c, 1)).length}, les cartes reviennent avec des étoiles ★</span>
         <span class="mm-stat"><span>Ton record</span><b>${best ? `Étage ${best}` : "—"}</b></span>
-        <span class="muted small">🎁 Récompenses selon l'étage atteint : bientôt !</span>
+        <span class="muted small" id="tourRewardInfo">${rewardInfo()}</span>
       </div>
       <div class="panel tour-board" id="tourBoard">${boardHTML(board)}</div>
       <div class="panel">
@@ -156,15 +164,37 @@
   /* =========================================================
      PAGE 2 : le combat
      ========================================================= */
-  const fighter = (card, level) => ({ card, level, ...stat(card, level), hp: HP });
+  const fighter = (card, level, s) => ({ card, level, ...(s || stat(card, level)), hp: HP });
   let speed = load("bm_tour_speed", 1);
+  let starting = false;
 
-  function start(picked) {
-    const tower = floors();
+  // En ligne : le serveur tire tout le combat au sort (et donne la récompense), le jeu le rejoue.
+  // Hors ligne : même combat, tiré au sort ici, sans récompense ni classement.
+  async function start(picked) {
+    if (starting) return;
+    let res = null;
+    if (online()) {
+      starting = true;
+      const go = $("#tourGo"); if (go) { go.disabled = true; go.textContent = "Montée…"; }
+      try { res = await BM.Online.tour.play(picked.map((x) => ({ id: x.card.id, level: x.level }))); }
+      catch (e) { starting = false; toast(esc(e.message), "bad"); if (go) { go.disabled = false; go.textContent = "🗼 Monter dans la tour"; } return; }
+      starting = false;
+      if (BM.UI.currentPage !== "tour") return;
+    }
+    let tower, mineF, total;
+    if (res) {
+      tower = res.tower.map((t) => ({ card: G.card(t.id) || { id: t.id, nom: t.id, rarete: "commune", image: "" }, level: t.level, s: { atk: t.atk, def: t.def } }));
+      mineF = res.team.map((t) => fighter(G.card(t.id) || { id: t.id, nom: t.id, rarete: "commune", image: "" }, t.level, { atk: t.atk, def: t.def }));
+      total = res.floors;
+    } else {
+      tower = floors();
+      mineF = picked.map((x) => fighter(x.card, x.level));
+      total = tower.length;
+    }
     run = {
-      alive: true, skip: false,
-      mine: picked.map((x) => fighter(x.card, x.level)), cur: 0,
-      tower, floor: 0, foe: fighter(tower[0].card, tower[0].level), kills: 0
+      alive: true, skip: false, res, script: res ? res.log.slice() : null,
+      mine: mineF, cur: 0, total,
+      tower, floor: 0, foe: fighter(tower[0].card, tower[0].level, tower[0].s), kills: 0
     };
     lastRun = run;
     drawBattle();
@@ -183,7 +213,7 @@
     <section class="tour-fight">
       <div class="tour-top">
         <button class="btn btn-sm" id="tourQuit">‹ Quitter</button>
-        <div class="tour-floor ${r.tower[r.floor].level > 1 ? "starred" : ""}"><span>Étage</span><b id="tourFloor">${r.floor + 1}</b><span>/ ${r.tower.length}</span></div>
+        <div class="tour-floor ${r.tower[r.floor].level > 1 ? "starred" : ""}"><span>Étage</span><b id="tourFloor">${r.floor + 1}</b><span>/ ${r.total}</span></div>
         <div class="tour-speed">${[1, 2, 4].map((s) => `<button class="btn btn-sm ${s === speed ? "on" : ""}" data-speed="${s}">×${s}</button>`).join("")}<button class="btn btn-sm" id="tourSkip">⏭ Passer</button></div>
       </div>
       <div class="tour-arena">
@@ -209,6 +239,7 @@
     $("#tourSkip").addEventListener("click", () => { if (run) run.skip = true; });
     $("#tourQuit").addEventListener("click", () => {
       if (!run) return renderPick();
+      if (run.res) { run.skip = true; return; } // en ligne, le combat est déjà joué : on va directement au résultat
       run.alive = false;
       const reached = run.floor + 1;
       run = null;
@@ -235,7 +266,9 @@
 
   // Un coup de a sur b : dégâts + petites animations
   async function strike(r, attacker, target, mineAttacks) {
-    const d = hit(attacker.atk, target.def);
+    let d;
+    if (r.script) { const h = r.script.shift() || [0, 1, 0]; d = { dmg: h[1], crit: !!h[2] }; }
+    else d = hit(attacker.atk, target.def);
     target.hp = Math.max(0, target.hp - d.dmg);
     if (r.skip) return d;
     const a = $(mineAttacks ? "#tcMe" : "#tcFoe"), t = $(mineAttacks ? "#tcFoe" : "#tcMe");
@@ -265,9 +298,9 @@
       if (foe.hp <= 0) {
         r.kills++;
         if (!r.skip) { anim($("#tcFoe"), "ko", 700); await wait(r, 650); if (!ok(r)) return; }
-        if (r.floor + 1 >= r.tower.length) return end(r, true);
+        if (r.floor + 1 >= r.total) return end(r, true);
         r.floor++;
-        r.foe = fighter(r.tower[r.floor].card, r.tower[r.floor].level);
+        r.foe = fighter(r.tower[r.floor].card, r.tower[r.floor].level, r.tower[r.floor].s);
         mineTurn = true;
         if (!r.skip) { drawBattle(); anim($("#tcFoe"), "enter-r", 500); $("#tourLog").innerHTML = `Étage <b>${r.floor + 1}</b> : <b>${esc(r.foe.card.nom)}</b> arrive !`; await wait(r, 650); }
       } else if (me.hp <= 0) {
@@ -284,18 +317,12 @@
     if (!ok(r)) return;
     run = null;
     // étage atteint = l'étage où l'équipe est tombée (ou le dernier si la tour est conquise)
-    finish(conquered ? r.tower.length : r.floor + 1, conquered, false, r.kills);
+    finish(conquered ? r.total : r.floor + 1, conquered, false, r.kills, r.res);
   }
 
-  function finish(reached, conquered, quit, kills) {
+  function finish(reached, conquered, quit, kills, res) {
     const best = load(KEY_BEST, 0);
-    if (!quit && online() && lastRun) {
-      const sent = lastRun.mine.map((f) => ({ id: f.card.id, level: f.level }));
-      BM.Online.tour.submit(reached, sent).then((r) => {
-        if (r && r.record) toast(`🏆 Record envoyé au classement : étage ${reached} !`);
-        loadBoard();
-      }).catch((e) => toast(esc(e.message), "bad"));
-    }
+    if (res) { reached = res.floor; conquered = res.conquered; kills = res.kills; nextReward = res.next_reward_at ? Date.parse(res.next_reward_at) : 0; loadBoard(); if (res.reward) BM.Online.refresh().catch(() => {}); }
     const record = reached > best && !quit;
     if (record) store(KEY_BEST, reached);
     if (!quit && BM.UI.currentPage === "tour") drawBattle0();
@@ -305,8 +332,10 @@
         <h2>${conquered ? "Tour Infernale conquise !" : quit ? "Tu as quitté la tour" : `Étage ${reached} atteint`}</h2>
         <p class="muted">${conquered ? "Tes cartes ont battu toutes les cartes du jeu. Incroyable." : quit ? `Tu étais à l'étage ${reached}.` : `Ton équipe est tombée à l'étage ${reached} sur ${floors().length}${kills != null ? ` (${kills} carte${kills > 1 ? "s" : ""} battue${kills > 1 ? "s" : ""})` : ""}.`}</p>
         ${record ? `<div class="mm-reward">🏆 Nouveau record : étage ${reached} !</div>` : !quit ? `<p class="muted small">Ton record : étage ${Math.max(best, reached)}</p>` : ""}
-        <p class="muted small">🎁 Récompenses selon l'étage atteint : bientôt !</p>
-        <div class="pull-actions"><button class="btn" data-team>Changer d'équipe</button><button class="btn btn-primary" data-again>🔁 Recommencer</button></div>
+        ${res && res.reward ? `<div class="mm-reward">🎁 Pack récompense : <b>${res.reward} cartes</b> <span class="muted small" style="white-space:nowrap">(chance +25 %)</span></div>`
+          : res ? `<p class="muted small">${packFor(reached) ? `Pas de pack cette fois : prochaine montée récompensée ${nextLabel()}.` : "Pas de pack : il faut atteindre au moins l'étage 10."}</p>`
+          : `<p class="muted small">Hors ligne : pas de récompense.</p>`}
+        <div class="pull-actions"><button class="btn" data-team>Changer d'équipe</button>${res && res.reward ? `<button class="btn" data-gift>🎁 Ouvrir mon pack</button>` : ""}<button class="btn btn-primary" data-again>🔁 Recommencer</button></div>
       </div>`);
     $("#modalContent [data-team]").addEventListener("click", () => { BM.UI.closeModal(); renderPick(); });
     $("#modalContent [data-again]").addEventListener("click", () => {
@@ -316,6 +345,14 @@
       picked.length ? start(picked) : renderPick();
     });
   }
+  // Récompense (calculée par le serveur, affichée ici pour info)
+  const packFor = (floor) => (floor >= 80 ? 10 : floor < 10 ? 0 : Math.min(9, 2 + Math.floor(floor / 10)));
+  let nextReward = 0; // heure de la prochaine montée récompensée (0 = maintenant)
+  const nextLabel = () => {
+    if (!nextReward || nextReward <= Date.now()) return "dès maintenant";
+    const d = new Date(nextReward);
+    return `à ${String(d.getHours()).padStart(2, "0")}h${String(d.getMinutes()).padStart(2, "0")}`;
+  };
   // Après « Passer » : on affiche l'état final du combat derrière la fenêtre
   function drawBattle0() { if (lastRun) { const keep = run; run = lastRun; drawBattle(); run = keep; } }
 

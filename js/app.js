@@ -269,7 +269,7 @@
     BM.UI.openModal(`
       <div class="rates-box">
         <h2>${rw ? "🎁 Pack récompense" : "Booster normal"}</h2>
-        <p class="muted">${n ? `${n} cartes` : "3 à 7 cartes selon le mini-jeu"}${rw ? " · <b class=\"rates-luck\">chance +25 %</b> sur toutes les raretés au-dessus de Commune" : ""}</p>
+        <p class="muted">${n ? `${n} cartes` : "3 à 10 cartes selon le mini-jeu"}${rw ? " · <b class=\"rates-luck\">chance +25 %</b> sur toutes les raretés au-dessus de Commune" : ""}</p>
         <table class="rates-table">
           <thead><tr><th>Rareté</th><th>Chaque carte</th>${g ? `<th>Dernière carte</th>` : ""}</tr></thead>
           <tbody>${G.availableRarities().map((r) => `

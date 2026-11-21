@@ -159,7 +159,7 @@ BM.Online = (function () {
     const C = BM.CONFIG;
     try {
       const row = await q(sb.rpc("sync_catalog", {
-        p_cards: BM.CARDS.map((c) => ({ id: c.id, rarete: c.rarete })),
+        p_cards: BM.CARDS.map((c) => ({ id: c.id, rarete: c.rarete, atk: c.attaque ?? null, def: c.defense ?? null, nom: c.nom })),
         p_settings: {
           cards_per_booster: C.cartesParBooster, recharge_minutes: C.rechargeMinutes,
           boosters_max: C.boostersMax, boosters_start: C.boostersDepart ?? 5,
@@ -323,7 +323,8 @@ BM.Online = (function () {
 
   /* ---------- Tour Infernale : classement ---------- */
   const tour = {
-    submit: (floor, team) => qeCall("tour_submit", { p_floor: floor, p_team: team }),
+    play: (team) => qeCall("tour_play", { p_team: team }),
+    status: () => qeCall("tour_status"),
     top: (limit = 10) => qeCall("tour_top", { p_limit: limit })
   };
 
