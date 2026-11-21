@@ -1184,3 +1184,10 @@ em.d0 { color: #3ee08f; } em.d1 { color: #3fa9ff; } em.d2 { color: #c05cff; } em
   .tour-mini { width: 48px; }
   .tour-dmg { font-size: 24px; } .tour-dmg.crit { font-size: 20px; }
 }
+/* Barres de vie : toute la largeur de la carte */
+.tour-side > div:not(.tour-label) { width: min(280px, 100%); }
+.tour-hp { width: 100%; height: 30px; }
+.tour-hp b { line-height: 30px; font-size: 15px; }
+.tour-floor.starred b { background: linear-gradient(135deg, #ffe08a, #ff3cac, #3fa9ff); -webkit-background-clip: text; background-clip: text; }
+@media (max-width: 640px) { .tour-hp { height: 22px; } .tour-hp b { line-height: 22px; font-size: 12px; } }
+.tour-label { margin-bottom: 12px; }

@@ -34,8 +34,36 @@
 
   const stat = (c, lv) => G.statsAt(c, lv) || { atk: 0, def: 0 };
   const power = (c, lv) => { const s = stat(c, lv); return s.atk + s.def; };
-  // La tour : toutes les cartes du jeu, de la plus faible à la plus forte (niveau 1)
-  const floors = () => BM.CARDS.filter((c) => G.statsAt(c, 1)).slice().sort((a, b) => power(a, 1) - power(b, 1) || a.nom.localeCompare(b.nom));
+  // La tour (80 étages) :
+  //  1. toutes les cartes du jeu, sans étoile, de la plus faible à la plus forte ;
+  //  2. puis les étages « étoilés » : les mêmes cartes avec des étoiles de fusion, de plus en plus fortes,
+  //     toujours plus fortes que la meilleure carte sans étoile (donc jamais une Commune étoilée).
+  //     Le dernier étage = la carte la plus forte du jeu avec toutes ses étoiles.
+  const FLOORS = 80;
+  const MAX_LV = () => (BM.CONFIG.fusion.etoilesMax || 6) + 1;
+  let towerCache = null;
+  function floors() {
+    if (towerCache && towerCache.n === BM.CARDS.length) return towerCache.list;
+    const base = BM.CARDS.filter((c) => G.statsAt(c, 1)).slice()
+      .sort((a, b) => power(a, 1) - power(b, 1) || a.nom.localeCompare(b.nom)).map((c) => ({ card: c, level: 1 }));
+    const list = base.slice();
+    const extra = FLOORS - base.length;
+    if (extra > 0 && base.length) {
+      const top = power(base[base.length - 1].card, 1);
+      const cand = [];
+      base.forEach(({ card }) => { for (let lv = 2; lv <= MAX_LV(); lv++) if (power(card, lv) > top) cand.push({ card, level: lv }); });
+      cand.sort((a, b) => power(a.card, a.level) - power(b.card, b.level));
+      const used = new Set();
+      for (let i = 0; i < extra && cand.length; i++) {
+        let k = Math.round(i * (cand.length - 1) / Math.max(1, extra - 1));
+        while (used.has(k) && k < cand.length - 1) k++;
+        used.add(k);
+        list.push(cand[k]);
+      }
+    }
+    towerCache = { n: BM.CARDS.length, list };
+    return list;
+  }
   const mine = () => BM.CARDS.filter((c) => G.owned(c.id) && G.statsAt(c, 1))
     .map((c) => ({ card: c, level: G.bestLevel(c.id) }))
     .sort((a, b) => power(b.card, b.level) - power(a.card, a.level));
@@ -59,6 +87,7 @@
       <p class="muted">Tes 5 cartes affrontent toutes les cartes du jeu, une par une, de la plus faible à la plus forte. Le combat est automatique : chaque carte a ${HP} PV, l'attaque fait mal, la défense protège. Tes cartes gardent leurs PV d'un combat à l'autre.</p>
       <div class="tour-bar">
         <span class="mm-stat"><span>Étages</span><b>${total}</b></span>
+        <span class="muted small">Après l'étage ${BM.CARDS.filter((c) => G.statsAt(c, 1)).length}, les cartes reviennent avec des étoiles ★</span>
         <span class="mm-stat"><span>Ton record</span><b>${best ? `Étage ${best}` : "—"}</b></span>
         <span class="muted small">🎁 Récompenses selon l'étage atteint : bientôt !</span>
       </div>
@@ -104,7 +133,7 @@
     run = {
       alive: true, skip: false,
       mine: picked.map((x) => fighter(x.card, x.level)), cur: 0,
-      tower, floor: 0, foe: fighter(tower[0], 1), kills: 0
+      tower, floor: 0, foe: fighter(tower[0].card, tower[0].level), kills: 0
     };
     lastRun = run;
     drawBattle();
@@ -123,7 +152,7 @@
     <section class="tour-fight">
       <div class="tour-top">
         <button class="btn btn-sm" id="tourQuit">‹ Quitter</button>
-        <div class="tour-floor"><span>Étage</span><b id="tourFloor">${r.floor + 1}</b><span>/ ${r.tower.length}</span></div>
+        <div class="tour-floor ${r.tower[r.floor].level > 1 ? "starred" : ""}"><span>Étage</span><b id="tourFloor">${r.floor + 1}</b><span>/ ${r.tower.length}</span></div>
         <div class="tour-speed">${[1, 2, 4].map((s) => `<button class="btn btn-sm ${s === speed ? "on" : ""}" data-speed="${s}">×${s}</button>`).join("")}<button class="btn btn-sm" id="tourSkip">⏭ Passer</button></div>
       </div>
       <div class="tour-arena">
@@ -134,8 +163,8 @@
         </div>
         <div class="tour-vs">VS</div>
         <div class="tour-side foe">
-          <div class="tour-label">Étage ${r.floor + 1}${next ? ` <span class="muted">· ensuite : ${esc(next.nom)}</span>` : ` <span class="muted">· dernier étage !</span>`}</div>
-          <div class="tour-card" id="tcFoe">${cardHTML(foe.card, { big: true })}</div>
+          <div class="tour-label">Étage ${r.floor + 1}${next ? ` <span class="muted">· ensuite : ${esc(next.card.nom)}${next.level > 1 ? " ★" : ""}</span>` : ` <span class="muted">· dernier étage !</span>`}</div>
+          <div class="tour-card" id="tcFoe">${cardHTML(foe.card, { level: foe.level, big: true })}</div>
           <div id="hpFoe">${hpBar(foe, "foe")}</div>
         </div>
       </div>
@@ -207,7 +236,7 @@
         if (!r.skip) { anim($("#tcFoe"), "ko", 700); await wait(r, 650); if (!ok(r)) return; }
         if (r.floor + 1 >= r.tower.length) return end(r, true);
         r.floor++;
-        r.foe = fighter(r.tower[r.floor], 1);
+        r.foe = fighter(r.tower[r.floor].card, r.tower[r.floor].level);
         mineTurn = true;
         if (!r.skip) { drawBattle(); anim($("#tcFoe"), "enter-r", 500); $("#tourLog").innerHTML = `Étage <b>${r.floor + 1}</b> : <b>${esc(r.foe.card.nom)}</b> arrive !`; await wait(r, 650); }
       } else if (me.hp <= 0) {
