@@ -53,6 +53,7 @@ BM.Online = (function () {
     MM_DEJA_TRAITEE: "Cette invitation a déjà été traitée.",
     MM_CARTE_INVALIDE: "Cette carte ne peut pas être retournée.",
     MM_GRILLE: "Grille inconnue.",
+    TOUR_INVALIDE: "Résultat de la tour refusé (équipe introuvable dans ta collection).",
     PAS_DE_PACK_RECOMPENSE: "Tu n'as pas de pack récompense : gagne des mini-jeux pour en obtenir !"
   };
   function err(code, raw) {
@@ -320,6 +321,12 @@ BM.Online = (function () {
   async function qeList() { await ready(); qeGames = (await q(sb.rpc("qe_list"))) || []; return qeGames; }
   async function qeCall(fn, args) { await ready(); return q(sb.rpc(fn, args)); }
 
+  /* ---------- Tour Infernale : classement ---------- */
+  const tour = {
+    submit: (floor, team) => qeCall("tour_submit", { p_floor: floor, p_team: team }),
+    top: (limit = 10) => qeCall("tour_top", { p_limit: limit })
+  };
+
   /* ---------- Packs récompense (gagnés dans les mini-jeux) ---------- */
   // Liste des packs pas encore ouverts : [{ n: nombre de cartes, src }]
   const rewardPacks = () => (player && Array.isArray(player.reward_packs) ? player.reward_packs : []);
@@ -367,7 +374,7 @@ BM.Online = (function () {
   };
 
   return {
-    qe, mm,
+    qe, mm, tour,
     configured, init, ready, signup, flush, openBooster, openReward, get rewardPacks() { return rewardPacks(); }, fuse, setVitrine, pushStats, refresh,
     findByPseudo, getPlayer, social, addFriend, removeFriend, isFriend, playerFriends, myFriendIds,
     trades, proposeTrade, acceptTrade, closeTrade,

@@ -73,6 +73,36 @@
   let lastRun = null;             // dernier combat (pour l'afficher derrière la fenêtre de fin)
   window.addEventListener("hashchange", () => { if (run) run.alive = false; run = null; });
 
+  /* ---------- Classement (serveur) ---------- */
+  const online = () => !!(BM.Online.isOn && BM.Online.isOn());
+  let board = null; // null = pas encore chargé, [] = vide
+  function teamMini(t) {
+    return `<div class="tour-bteam">${(t || []).map((x) => { const c = G.card(x.id); return c ? `<div class="tour-bcard">${cardHTML(c, { level: x.level })}</div>` : ""; }).join("")}</div>`;
+  }
+  function boardHTML(list) {
+    if (!online()) return `<h2>🏆 Classement</h2><p class="muted small">Le classement a besoin du serveur.</p>`;
+    if (list == null) return `<h2>🏆 Classement</h2><p class="muted small"><span class="spinner"></span> Chargement…</p>`;
+    if (!list.length) return `<h2>🏆 Classement</h2><p class="muted">Personne n'a encore de record. Sois le premier !</p>`;
+    const [top, ...rest] = list;
+    return `
+      <h2>🏆 Détenteur du record</h2>
+      <div class="tour-champ">
+        <div class="tour-champ-txt"><span class="av">${esc((top.pseudo || "?").charAt(0).toUpperCase())}</span>
+          <div><b>${esc(top.pseudo)}</b>${top.me ? ` <span class="muted small">(toi)</span>` : ""}<span class="tour-champ-floor">Étage ${top.floor}</span></div></div>
+        ${teamMini(top.team)}
+      </div>
+      ${rest.length ? `<div class="tour-rank">${rest.map((r, i) => `
+        <div class="tour-row ${r.me ? "me" : ""}"><span class="tour-pos">${i + 2}</span><b class="tour-name">${esc(r.pseudo)}</b><span class="tour-fl">Étage ${r.floor}</span>${teamMini(r.team)}</div>`).join("")}</div>` : ""}`;
+  }
+  async function loadBoard() {
+    if (!online()) return;
+    try { board = await BM.Online.tour.top(10); } catch (e) { board = board || []; }
+    const mineRec = (board || []).find((r) => r.me);
+    if (mineRec && mineRec.floor > load(KEY_BEST, 0)) { store(KEY_BEST, mineRec.floor); if (BM.UI.currentPage === "tour" && !run) return renderPick(); }
+    const el = $("#tourBoard");
+    if (el && BM.UI.currentPage === "tour") { el.innerHTML = boardHTML(board); }
+  }
+
   /* =========================================================
      PAGE 1 : choix de l'équipe
      ========================================================= */
@@ -91,6 +121,7 @@
         <span class="mm-stat"><span>Ton record</span><b>${best ? `Étage ${best}` : "—"}</b></span>
         <span class="muted small">🎁 Récompenses selon l'étage atteint : bientôt !</span>
       </div>
+      <div class="panel tour-board" id="tourBoard">${boardHTML(board)}</div>
       <div class="panel">
         <h2>Ton équipe <span class="muted small">(dans l'ordre de passage)</span></h2>
         <div class="tour-team">${Array.from({ length: TEAM }, (_, i) => {
@@ -258,6 +289,13 @@
 
   function finish(reached, conquered, quit, kills) {
     const best = load(KEY_BEST, 0);
+    if (!quit && online() && lastRun) {
+      const sent = lastRun.mine.map((f) => ({ id: f.card.id, level: f.level }));
+      BM.Online.tour.submit(reached, sent).then((r) => {
+        if (r && r.record) toast(`🏆 Record envoyé au classement : étage ${reached} !`);
+        loadBoard();
+      }).catch((e) => toast(esc(e.message), "bad"));
+    }
     const record = reached > best && !quit;
     if (record) store(KEY_BEST, reached);
     if (!quit && BM.UI.currentPage === "tour") drawBattle0();
@@ -281,5 +319,5 @@
   // Après « Passer » : on affiche l'état final du combat derrière la fenêtre
   function drawBattle0() { if (lastRun) { const keep = run; run = lastRun; drawBattle(); run = keep; } }
 
-  BM.UI.page("tour", () => { if (run) { run.alive = false; run = null; } renderPick(); });
+  BM.UI.page("tour", () => { if (run) { run.alive = false; run = null; } renderPick(); loadBoard(); });
 })();

@@ -20,28 +20,28 @@ BM.CARDS = [
     nom: "Accart",
     image: "images/killian-accart.jpg",
     rarete: "commune",
-    attaque: 12, defense: 16
+    attaque: 13, defense: 17
   },
   {
     id: "tayshan",
     nom: "Tayshan",
     image: "images/tayshan.jpg",
     rarete: "commune",
-    attaque: 19, defense: 14
+    attaque: 20, defense: 14
   },
   {
     id: "esteban",
     nom: "Esté",
     image: "images/esteban.webp",
     rarete: "commune",
-    attaque: 15, defense: 13
+    attaque: 16, defense: 14
   },
   {
     id: "elouan-chauve",
     nom: "Elouan Chauve",
     image: "images/elouan-chauve.webp",
     rarete: "rare",
-    attaque: 48, defense: 42
+    attaque: 51, defense: 44
   },
   {
     id: "evan-calvitie",
@@ -62,49 +62,49 @@ BM.CARDS = [
     nom: "Ajmol",
     image: "images/ajmol.jpg",
     rarete: "rare",
-    attaque: 62, defense: 55
+    attaque: 61, defense: 54
   },
   {
     id: "krimi-chatte",
     nom: "Krimi Chatte",
     image: "images/krimi-chatte.webp",
     rarete: "legendaire",
-    attaque: 112, defense: 104
+    attaque: 111, defense: 104
   },
   {
     id: "mikha-albinos",
     nom: "Mikha Albinos",
     image: "images/mikha-albinos.webp",
     rarete: "rare",
-    attaque: 50, defense: 47
+    attaque: 49, defense: 47
   },
   {
     id: "monsieur-kouaye",
     nom: "Monsieur Kouaye",
     image: "images/monsieur-kouaye.webp",
     rarete: "epique",
-    attaque: 76, defense: 85
+    attaque: 80, defense: 90
   },
   {
     id: "petit-nael-gilles-verdez",
     nom: "Naël x Gilles Verdez",
     image: "images/petit-nael-gilles-verdez.webp",
     rarete: "epique",
-    attaque: 80, defense: 80
+    attaque: 84, defense: 84
   },
   {
     id: "cousin-baveux",
     nom: "Cousin baveux",
     image: "images/cousin-baveux.jpg",
     rarete: "secrete",
-    attaque: 115, defense: 105,
+    attaque: 139, defense: 126,
   },
   {
     id: "josue",
     nom: "Josué Auschwitz",
     image: "images/josue.jpg",
     rarete: "epique",
-    attaque: 74, defense: 79
+    attaque: 75, defense: 80
   },
   {
     id: "yass-merguez",
@@ -118,14 +118,14 @@ BM.CARDS = [
     nom: "Krimi Jeu des Mèmes",
     image: "images/krimi-jeu-des-memes.webp",
     rarete: "legendaire",
-    attaque: 115, defense: 108
+    attaque: 114, defense: 108
   },
   {
     id: "massy",
     nom: "Massy",
     image: "images/massy.webp",
     rarete: "commune",
-    attaque: 17, defense: 15
+    attaque: 16, defense: 15
   },
   {
     id: "quentin-bedo",
@@ -139,28 +139,28 @@ BM.CARDS = [
     nom: "Tony Draou Bossu",
     image: "images/tony-draou-bossu.webp",
     rarete: "epique",
-    attaque: 81, defense: 70
+    attaque: 82, defense: 71
   },
   {
     id: "mr-laouer",
     nom: "Mr. Laouer",
     image: "images/mr-laouer.webp",
     rarete: "rare",
-    attaque: 51, defense: 50
+    attaque: 52, defense: 50
   },
   {
     id: "paul-vrai-calvitie",
     nom: "Paul vrai calvitie",
     image: "images/paul.jpg",
     rarete: "rare",
-    attaque: 55, defense: 60
+    attaque: 55, defense: 59
   },
   {
     id: "oulmou",
     nom: "Oulmou",
     image: "images/oulmou.webp",
     rarete: "commune",
-    attaque: 16, defense: 18
+    attaque: 16, defense: 19
   },
   {
     id: "tsm",
@@ -174,7 +174,7 @@ BM.CARDS = [
     nom: "Frosty",
     image: "images/frosty.webp",
     rarete: "commune",
-    attaque: 20, defense: 17
+    attaque: 22, defense: 18
   },
   {
     id: "le-bottier",
@@ -202,7 +202,7 @@ BM.CARDS = [
     nom: "Will",
     image: "images/will.jpg",
     rarete: "rare",
-    attaque: 58, defense: 50
+    attaque: 59, defense: 50
   },
   {
     id: "ismael",
@@ -216,42 +216,42 @@ BM.CARDS = [
     nom: "Evan Linkedin",
     image: "images/evan-linkedin.webp",
     rarete: "rare",
-    attaque: 50, defense: 64
+    attaque: 49, defense: 63
   },
   {
     id: "zuzurl",
     nom: "ZuzuRL",
     image: "images/zuzurl.jpg",
     rarete: "rare",
-    attaque: 66, defense: 48
+    attaque: 65, defense: 48
   },
   {
     id: "gp-vouille-gp-zennadi",
     nom: "GP Zennadi x GP Vouille",
     image: "images/gp-vouille-gp-zennadi.jpg",
     rarete: "legendaire",
-    attaque: 110, defense: 118
+    attaque: 113, defense: 122
   },
   {
     id: "solane-aviateur",
     nom: "Solane aviateur",
     image: "images/solane-aviateur.jpg",
     rarete: "rare",
-    attaque: 60, defense: 53
+    attaque: 59, defense: 52
   },
   {
     id: "bat",
     nom: "Bat",
     image: "images/bat.webp",
     rarete: "commune",
-    attaque: 18, defense: 17
+    attaque: 19, defense: 17
   },
   {
     id: "cerfio",
     nom: "Cerfion",
     image: "images/cerfio.webp",
     rarete: "epique",
-    attaque: 79, defense: 76
+    attaque: 82, defense: 78
   },
   {
     id: "evan-jonesy",
@@ -265,7 +265,7 @@ BM.CARDS = [
     nom: "Bébé Bat BLM",
     image: "images/bebe-bat-blm.webp",
     rarete: "rare",
-    attaque: 53, defense: 51
+    attaque: 52, defense: 51
   },
   {
     id: "hmd",
@@ -279,28 +279,28 @@ BM.CARDS = [
     nom: "Nabil",
     image: "images/nabil.webp",
     rarete: "commune",
-    attaque: 16, defense: 19
+    attaque: 17, defense: 20
   },
   {
     id: "bebe-nael",
     nom: "Bébé Nael",
     image: "images/bebe-nael.webp",
     rarete: "rare",
-    attaque: 49, defense: 52
+    attaque: 49, defense: 51
   },
   {
     id: "krimi-pipi-chien",
     nom: "Krimi Pipi Chien",
     image: "images/krimi-pipi-chien.webp",
     rarete: "epique",
-    attaque: 82, defense: 73
+    attaque: 86, defense: 77
   },
   {
     id: "oulmou-buzz-cut",
     nom: "Oulmou Buzz Cut",
     image: "images/oulmou-buzz-cut.webp",
     rarete: "epique",
-    attaque: 80, defense: 78
+    attaque: 84, defense: 81
   },
   {
     id: "mikha",
@@ -314,14 +314,14 @@ BM.CARDS = [
     nom: "Adam",
     image: "images/adam.webp",
     rarete: "commune",
-    attaque: 16, defense: 17
+    attaque: 16, defense: 16
   },
   {
     id: "cooki",
     nom: "Cooki",
     image: "images/cooki.jpg",
     rarete: "commune",
-    attaque: 17, defense: 20
+    attaque: 18, defense: 21
   },
   {
     id: "frosty-baillone",
@@ -335,7 +335,7 @@ BM.CARDS = [
     nom: "Maxence Lahont",
     image: "images/maxence-lahont.jpg",
     rarete: "rare",
-    attaque: 53, defense: 56
+    attaque: 53, defense: 57
   },
   {
     id: "evan-leon",
@@ -349,28 +349,28 @@ BM.CARDS = [
     nom: "Nachita",
     image: "images/nachita.jpg",
     rarete: "commune",
-    attaque: 14, defense: 22
+    attaque: 15, defense: 23
   },
   {
     id: "ritchie",
     nom: "Ritchie",
     image: "images/ritchie.jpg",
     rarete: "commune",
-    attaque: 21, defense: 15
+    attaque: 23, defense: 16
   },
   {
     id: "luna",
     nom: "Luna",
     image: "images/luna.jpg",
     rarete: "commune",
-    attaque: 16, defense: 19
+    attaque: 16, defense: 20
   },
   {
     id: "mimi",
     nom: "Mimi",
     image: "images/mimi.jpg",
     rarete: "commune",
-    attaque: 13, defense: 21
+    attaque: 14, defense: 21
   },
   {
     id: "big-aubert",
@@ -384,48 +384,48 @@ BM.CARDS = [
     nom: "Steven",
     image: "images/steven.webp",
     rarete: "commune",
-    attaque: 15, defense: 18
+    attaque: 15, defense: 19
   },
   {
     id: "bat-chez-legend-hair",
     nom: "Bat chez Légend'Hair",
     image: "images/bat-chez-legend-hair.jpg",
     rarete: "epique",
-    attaque: 78, defense: 77
+    attaque: 80, defense: 78
   },
   {
     id: "krimi-petit",
     nom: "Krimi Petit",
     image: "images/krimi-petit.webp",
     rarete: "rare",
-    attaque: 48, defense: 50
+    attaque: 48, defense: 49
   },
   {
     id: "evan-enfant",
     nom: "Evan enfant",
     image: "images/evan-enfant.jpg",
     rarete: "commune",
-    attaque: 18, defense: 15
+    attaque: 17, defense: 15
   },
   {
     id: "nael-enfant",
     nom: "Nael enfant",
     image: "images/nael-enfant.jpg",
     rarete: "commune",
-    attaque: 15, defense: 20
+    attaque: 16, defense: 21
   },
   {
     id: "mathis-enfant",
     nom: "Mathis enfant",
     image: "images/mathis-enfant.jpg",
     rarete: "commune",
-    attaque: 19, defense: 17
+    attaque: 20, defense: 18
   },
   {
     id: "tayshan-enfant",
     nom: "Tayshan enfant",
     image: "images/tayshan-enfant.jpg",
     rarete: "commune",
-    attaque: 21, defense: 14
+    attaque: 23, defense: 15
   }
 ];
