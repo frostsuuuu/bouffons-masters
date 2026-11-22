@@ -137,6 +137,7 @@ begin
   hps := array_fill(100, array[nt]);
   -- Combat : chacun son tour, ta carte frappe en premier à chaque nouveau duel.
   -- dégâts = 80 × (attaque / (attaque + défense))² × (0,85 à 1,15), critique 10 % × 1,5, minimum 1
+  -- Après chaque étage gagné, ta carte récupère 13 PV (max 100).
   loop
     guard := guard + 1;
     exit when guard > 20000;
@@ -155,6 +156,7 @@ begin
       kills := kills + 1;
       if fl + 1 >= nf then conquered := true; exit; end if;
       fl := fl + 1; foe_hp := 100; mine_turn := true;
+      hps[cur + 1] := least(100, hps[cur + 1] + 13); -- soin après chaque étage gagné
     elsif hps[cur + 1] <= 0 then
       if cur + 1 >= nt then exit; end if;
       cur := cur + 1; mine_turn := true;

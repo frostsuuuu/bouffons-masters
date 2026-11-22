@@ -3,10 +3,10 @@
    - Tu choisis 5 cartes de ta collection (à leur meilleur niveau de fusion).
    - Elles affrontent, une par une, toutes les cartes du jeu, de la plus faible
      à la plus forte (une carte = un étage de la tour).
-   - Combat automatique : 100 PV chacune, coups chacun son tour.
+   - Combat automatique : 100 PV chacune, coups chacun son tour ; +13 PV après chaque étage gagné.
    - Une carte ennemie tuée → l'étage suivant. Ta carte tuée → ta carte suivante.
      Tes cartes gardent leurs PV d'un combat à l'autre.
-   - Pour l'instant pas de récompense : on garde juste ton record.
+   - Récompense (en ligne) : pack selon l'étage atteint, et classement.
    ========================================================= */
 (function () {
   const G = BM.Game;
@@ -15,6 +15,10 @@
 
   const TEAM = 5;
   const HP = 100;
+  // Après chaque étage gagné, ta carte en jeu récupère HEAL PV (max 100) — même règle que le serveur.
+  // Sans ça, l'usure sur 80 étages empêchait même une équipe parfaite (5 meilleures cartes ★★★ arc-en-ciel) de finir.
+  // Avec 13 : l'équipe parfaite finit la tour environ 7 fois sur 10.
+  const HEAL = 13;
   // Dégâts d'un coup : r = attaque / (attaque + défense de la cible), dégâts = 80 × r², ±15 % au hasard.
   //   à stats égales (r = 0,5) : 20 dégâts → 5 coups pour tuer
   //   plus d'attaque → plus de dégâts ; plus de défense en face → moins de dégâts.
@@ -122,7 +126,7 @@
     app().innerHTML = `
     <section class="tour-pick">
       <div class="qe-head"><a class="btn btn-sm" href="#minijeux">‹ Mini-jeux</a><h1 class="page-title">Tour Infernale</h1></div>
-      <p class="muted">Tes 5 cartes affrontent toutes les cartes du jeu, une par une, de la plus faible à la plus forte. Le combat est automatique : chaque carte a ${HP} PV, l'attaque fait mal, la défense protège. Tes cartes gardent leurs PV d'un combat à l'autre.</p>
+      <p class="muted">Tes 5 cartes affrontent toutes les cartes du jeu, une par une, de la plus faible à la plus forte. Le combat est automatique : chaque carte a ${HP} PV, l'attaque fait mal, la défense protège. Tes cartes gardent leurs PV d'un combat à l'autre, et récupèrent ${HEAL} PV après chaque étage gagné.</p>
       <div class="tour-bar">
         <span class="mm-stat"><span>Étages</span><b>${total}</b></span>
         <span class="muted small">Après l'étage ${BM.CARDS.filter((c) => G.statsAt(c, 1)).length}, les cartes reviennent avec des étoiles ★</span>
@@ -301,8 +305,10 @@
         if (r.floor + 1 >= r.total) return end(r, true);
         r.floor++;
         r.foe = fighter(r.tower[r.floor].card, r.tower[r.floor].level, r.tower[r.floor].s);
+        const healed = Math.min(HP, me.hp + HEAL) - me.hp;
+        me.hp += healed;
         mineTurn = true;
-        if (!r.skip) { drawBattle(); anim($("#tcFoe"), "enter-r", 500); $("#tourLog").innerHTML = `Étage <b>${r.floor + 1}</b> : <b>${esc(r.foe.card.nom)}</b> arrive !`; await wait(r, 650); }
+        if (!r.skip) { drawBattle(); anim($("#tcFoe"), "enter-r", 500); $("#tourLog").innerHTML = `Étage <b>${r.floor + 1}</b> : <b>${esc(r.foe.card.nom)}</b> arrive !${healed > 0 ? ` <b>${esc(me.card.nom)}</b> récupère <b>+${healed} PV</b>.` : ""}`; await wait(r, 650); }
       } else if (me.hp <= 0) {
         if (!r.skip) { anim($("#tcMe"), "ko", 700); await wait(r, 650); if (!ok(r)) return; }
         if (r.cur + 1 >= r.mine.length) return end(r, false);
