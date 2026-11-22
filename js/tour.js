@@ -239,7 +239,7 @@
       <div class="tour-top">
         <button class="btn btn-sm" id="tourQuit">‹ Quitter</button>
         <div class="tour-floor ${r.tower[r.floor].level > 1 ? "starred" : ""}"><span>Étage</span><b id="tourFloor">${r.floor + 1}</b><span>/ ${r.total}</span></div>
-        <div class="tour-speed">${[1, 2, 4].map((s) => `<button class="btn btn-sm ${s === speed ? "on" : ""}" data-speed="${s}">×${s}</button>`).join("")}<button class="btn btn-sm" id="tourSkip">⏭ Passer</button></div>
+        <div class="tour-speed">${[1, 2, 4].map((s) => `<button class="btn btn-sm ${s === speed ? "on" : ""}" data-speed="${s}">×${s}</button>`).join("")}</div>
       </div>
       <div class="tour-arena">
         <div class="tour-side me">
@@ -261,10 +261,13 @@
       speed = +b.dataset.speed; store("bm_tour_speed", speed);
       $$("[data-speed]").forEach((x) => x.classList.toggle("on", x === b));
     }));
-    $("#tourSkip").addEventListener("click", () => { if (run) run.skip = true; });
     $("#tourQuit").addEventListener("click", () => {
       if (!run) return renderPick();
-      if (run.res) { run.skip = true; return; } // en ligne, le combat est déjà joué : on va directement au résultat
+      if (run.res) { // en ligne, le combat est déjà joué côté serveur : on quitte sans révéler le résultat
+        run.alive = false; run = null; renderPick();
+        toast("Montée quittée : ta récompense éventuelle est déjà dans tes packs.");
+        return;
+      }
       run.alive = false;
       const reached = run.floor + 1;
       run = null;
