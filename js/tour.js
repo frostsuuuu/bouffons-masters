@@ -100,12 +100,33 @@
   }
   function rewardInfo() {
     if (!online()) return "🎁 Récompenses : connecte-toi au serveur.";
-    return `🎁 Pack récompense selon l'étage : 10 → 3 cartes, 20 → 4 … 70 → 9, tour finie → 10. Une montée récompensée toutes les 2 h${nextReward > Date.now() ? ` · <b>prochaine ${nextLabel()}</b>` : " · <b>disponible</b>"}.`;
+    const P = paliers(), fin = P.find((t) => t.fin);
+    return `🎁 Chaque montée rapporte un pack selon l'étage atteint : étage 10 → 3 cartes … étage 70 → 9 cartes${fin ? `, tour finie → <b>${esc(fin.nom)}</b> (${fin.cartes} cartes)` : ""}. Plus tu montes, meilleurs sont les taux. <a href="#" id="tourRates">Voir les taux</a>`;
   }
+  const paliers = () => (BM.CONFIG.tour && BM.CONFIG.tour.paliers) || [];
+  // Palier obtenu pour un étage atteint (même règle que le serveur)
+  const tierFor = (floor, conquered) => conquered ? paliers().find((t) => t.fin) || null
+    : paliers().filter((t) => !t.fin && t.etage <= floor).sort((a, b) => b.etage - a.etage)[0] || null;
+  function showTourRates() {
+    const av = G.availableRarities();
+    const P = paliers().slice().sort((a, b) => (a.fin ? 1e9 : a.etage) - (b.fin ? 1e9 : b.etage));
+    const pc = (t, id) => { const tot = av.reduce((n, r) => n + (t.poids[r.id] || 0), 0) || 1; const x = (t.poids[id] || 0) / tot * 100; const r = Math.round(x * 10) / 10; return String(r).replace(".", ","); };
+    BM.UI.openModal(`
+      <div class="rates-box">
+        <h2>🗼 Packs de la Tour Infernale</h2>
+        <p class="muted">Un pack à chaque montée, selon l'étage atteint. Chances par carte :</p>
+        <div style="overflow-x:auto"><table class="rates-table">
+          <thead><tr><th>Étage</th><th>Cartes</th>${av.map((r) => `<th><span class="rates-dot" style="--rc:${r.couleur}"></span>${esc(r.nom)}</th>`).join("")}<th>Dernière carte</th></tr></thead>
+          <tbody>${P.map((t) => `<tr><td><b>${t.fin ? "Tour finie" : `${t.etage}–${t.etage + 9}`}</b><br><small class="muted">${esc(t.nom || "")}</small></td><td>${t.cartes}</td>${av.map((r) => `<td>${pc(t, r.id)} %</td>`).join("")}<td>${t.garantie ? esc(G.rarity(t.garantie).nom) + " ou mieux" : "—"}</td></tr>`).join("")}
+          </tbody>
+        </table></div>
+        <p class="muted small">Pour comparer, un booster normal : ${av.map((r) => `${esc(r.nom)} ${(r.poids / av.reduce((n, x) => n + x.poids, 0) * 100).toFixed(1).replace(".", ",").replace(",0", "")} %`).join(" · ")}.</p>
+      </div>`);
+  }
+  document.addEventListener("click", (e) => { if (e.target && e.target.id === "tourRates") { e.preventDefault(); showTourRates(); } });
   async function loadBoard() {
     if (!online()) return;
     BM.Online.tour.status().then((st) => {
-      nextReward = st && st.next_reward_at ? Date.parse(st.next_reward_at) : 0;
       const el = $("#tourRewardInfo"); if (el) el.innerHTML = rewardInfo();
     }).catch(() => {});
     try { board = await BM.Online.tour.top(10); } catch (e) { board = board || []; }
@@ -328,7 +349,7 @@
 
   function finish(reached, conquered, quit, kills, res) {
     const best = load(KEY_BEST, 0);
-    if (res) { reached = res.floor; conquered = res.conquered; kills = res.kills; nextReward = res.next_reward_at ? Date.parse(res.next_reward_at) : 0; loadBoard(); if (res.reward) BM.Online.refresh().catch(() => {}); }
+    if (res) { reached = res.floor; conquered = res.conquered; kills = res.kills; loadBoard(); if (res.reward) BM.Online.refresh().catch(() => {}); }
     const record = reached > best && !quit;
     if (record) store(KEY_BEST, reached);
     if (!quit && BM.UI.currentPage === "tour") drawBattle0();
@@ -338,8 +359,8 @@
         <h2>${conquered ? "Tour Infernale conquise !" : quit ? "Tu as quitté la tour" : `Étage ${reached} atteint`}</h2>
         <p class="muted">${conquered ? "Tes cartes ont battu toutes les cartes du jeu. Incroyable." : quit ? `Tu étais à l'étage ${reached}.` : `Ton équipe est tombée à l'étage ${reached} sur ${floors().length}${kills != null ? ` (${kills} carte${kills > 1 ? "s" : ""} battue${kills > 1 ? "s" : ""})` : ""}.`}</p>
         ${record ? `<div class="mm-reward">🏆 Nouveau record : étage ${reached} !</div>` : !quit ? `<p class="muted small">Ton record : étage ${Math.max(best, reached)}</p>` : ""}
-        ${res && res.reward ? `<div class="mm-reward">🎁 Pack récompense : <b>${res.reward} cartes</b> <span class="muted small" style="white-space:nowrap">(chance +25 %)</span></div>`
-          : res ? `<p class="muted small">${packFor(reached) ? `Pas de pack cette fois : prochaine montée récompensée ${nextLabel()}.` : "Pas de pack : il faut atteindre au moins l'étage 10."}</p>`
+        ${res && res.reward ? `<div class="mm-reward">🎁 <b>${esc((res.tier && res.tier.nom) || "Pack récompense")}</b> : <b>${res.reward} cartes</b>${res.tier && res.tier.garantie ? ` <span class="muted small" style="white-space:nowrap">(dernière carte ${esc(G.rarity(res.tier.garantie).nom)} ou mieux)</span>` : ""}</div>`
+          : res ? `<p class="muted small">Pas de pack : il faut atteindre au moins l'étage ${(paliers().filter((t) => !t.fin).map((t) => t.etage).sort((a, b) => a - b)[0]) || 10}.</p>`
           : `<p class="muted small">Hors ligne : pas de récompense.</p>`}
         <div class="pull-actions"><button class="btn" data-team>Changer d'équipe</button>${res && res.reward ? `<button class="btn" data-gift>🎁 Ouvrir mon pack</button>` : ""}<button class="btn btn-primary" data-again>🔁 Recommencer</button></div>
       </div>`);
@@ -351,14 +372,6 @@
       picked.length ? start(picked) : renderPick();
     });
   }
-  // Récompense (calculée par le serveur, affichée ici pour info)
-  const packFor = (floor) => (floor >= 80 ? 10 : floor < 10 ? 0 : Math.min(9, 2 + Math.floor(floor / 10)));
-  let nextReward = 0; // heure de la prochaine montée récompensée (0 = maintenant)
-  const nextLabel = () => {
-    if (!nextReward || nextReward <= Date.now()) return "dès maintenant";
-    const d = new Date(nextReward);
-    return `à ${String(d.getHours()).padStart(2, "0")}h${String(d.getMinutes()).padStart(2, "0")}`;
-  };
   // Après « Passer » : on affiche l'état final du combat derrière la fenêtre
   function drawBattle0() { if (lastRun) { const keep = run; run = lastRun; drawBattle(); run = keep; } }
 

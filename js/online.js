@@ -53,6 +53,7 @@ BM.Online = (function () {
     MM_DEJA_TRAITEE: "Cette invitation a déjà été traitée.",
     MM_CARTE_INVALIDE: "Cette carte ne peut pas être retournée.",
     MM_GRILLE: "Grille inconnue.",
+    TOUR_EN_COURS: "Ta montée précédente n'est pas finie : regarde-la jusqu'au bout avant d'en relancer une.",
     TOUR_INVALIDE: "Résultat de la tour refusé (équipe introuvable dans ta collection).",
     PAS_DE_PACK_RECOMPENSE: "Tu n'as pas de pack récompense : gagne des mini-jeux pour en obtenir !"
   };
@@ -164,7 +165,8 @@ BM.Online = (function () {
           cards_per_booster: C.cartesParBooster, recharge_minutes: C.rechargeMinutes,
           boosters_max: C.boostersMax, boosters_start: C.boostersDepart ?? 5,
           guarantee: C.garantieDerniereCarte || null,
-          rarities: C.raretes.map((r) => ({ id: r.id, poids: r.poids })), test_mode: !!C.modeTest
+          rarities: C.raretes.map((r) => ({ id: r.id, poids: r.poids })), test_mode: !!C.modeTest,
+          tour_tiers: (C.tour && C.tour.paliers) || []
         }
       }));
       if (row && row.id) player = row; // compte « toutes les cartes » (mode dev) : collection mise à jour

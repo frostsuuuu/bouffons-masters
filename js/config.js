@@ -53,6 +53,24 @@ BM.CONFIG = {
     bonusParEtoile: 0.25        // +25 % d'attaque / défense par palier (une ★ arc-en-ciel compte comme le 4e palier)
   },
 
+  /* ---------- Tour Infernale : pack récompense selon l'étage atteint ----------
+     À chaque montée (en ligne), on gagne le pack du palier atteint : plus de cartes ET de meilleurs taux.
+     « etage » = étage atteint minimum ; « fin » = tour finie. « poids » = chances par rareté (comme raretes),
+     « garantie » = rareté minimum de la dernière carte du pack. Recopié sur le serveur à l'ouverture du jeu par un admin.
+     Pour comparer, un booster normal : commune 70 · rare 22 · épique 6 · légendaire 2 · secrète 0,5. */
+  tour: {
+    paliers: [
+      { etage: 10, cartes: 3,  nom: "Pack Tour I",    garantie: "rare",       poids: { commune: 65, rare: 25, epique: 7,  legendaire: 2.5, secrete: 0.5 } },
+      { etage: 20, cartes: 4,  nom: "Pack Tour II",   garantie: "rare",       poids: { commune: 60, rare: 27, epique: 9,  legendaire: 3.3, secrete: 0.7 } },
+      { etage: 30, cartes: 5,  nom: "Pack Tour III",  garantie: "rare",       poids: { commune: 55, rare: 29, epique: 11, legendaire: 4,   secrete: 1 } },
+      { etage: 40, cartes: 6,  nom: "Pack Tour IV",   garantie: "rare",       poids: { commune: 50, rare: 31, epique: 13, legendaire: 5,   secrete: 1 } },
+      { etage: 50, cartes: 7,  nom: "Pack Tour V",    garantie: "rare",       poids: { commune: 45, rare: 32, epique: 16, legendaire: 6,   secrete: 1 } },
+      { etage: 60, cartes: 8,  nom: "Pack Tour VI",   garantie: "rare",       poids: { commune: 40, rare: 33, epique: 19, legendaire: 6.5, secrete: 1.5 } },
+      { etage: 70, cartes: 9,  nom: "Pack Tour VII",  garantie: "epique",     poids: { commune: 35, rare: 34, epique: 22, legendaire: 7,   secrete: 2 } },
+      { fin: true, cartes: 10, nom: "Pack Infernal",  garantie: "legendaire", poids: { commune: 25, rare: 35, epique: 27, legendaire: 10,  secrete: 3 } }
+    ]
+  },
+
   /* ---------- Compte & social ---------- */
   pseudo: { min: 3, max: 16 },
   vitrineMax: 5,               // nombre de cartes dans la vitrine du profil

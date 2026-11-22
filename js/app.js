@@ -258,18 +258,29 @@
     const total = w.reduce((a, b) => a + b, 0) || 1;
     return Object.fromEntries(pool.map((r, i) => [r.id, (w[i] / total) * 100]));
   }
+  // Taux d'un pack qui a ses propres poids (même calcul que le serveur)
+  function ownRates(w, minId) {
+    const av = G.availableRarities();
+    const minI = minId ? G.rarityIndex(minId) : -1;
+    let pool = av.filter((r) => G.rarityIndex(r.id) >= minI);
+    if (!pool.length) pool = av;
+    const total = pool.reduce((a, r) => a + (w[r.id] || 0), 0) || 1;
+    return Object.fromEntries(pool.map((r) => [r.id, ((w[r.id] || 0) / total) * 100]));
+  }
   const pct = (x) => (x == null ? "—" : x === 0 ? "0 %" : x < 1 ? x.toFixed(2).replace(".", ",") + " %" : x.toFixed(1).replace(".", ",").replace(",0", "") + " %");
   function showRates(kind) {
     const rw = kind === "reward";
     const boost = rw ? REWARD_BOOST : 1;
-    const n = rw ? (BM.Online.rewardPacks[0] ? BM.Online.rewardPacks[0].n : null) : C.cartesParBooster;
-    const g = C.garantieDerniereCarte;
-    const each = packRates(boost), last = packRates(boost, g);
+    const nx = rw ? BM.Online.rewardPacks[0] : null;
+    const n = rw ? (nx ? nx.n : null) : C.cartesParBooster;
+    const own = nx && nx.w ? nx.w : null; // pack à taux propres (ex. Tour Infernale)
+    const g = own ? (nx.g || C.garantieDerniereCarte) : C.garantieDerniereCarte;
+    const each = own ? ownRates(own) : packRates(boost), last = own ? ownRates(own, g) : packRates(boost, g);
     const base = rw ? packRates(1) : null;
     BM.UI.openModal(`
       <div class="rates-box">
-        <h2>${rw ? "🎁 Pack récompense" : "Booster normal"}</h2>
-        <p class="muted">${n ? `${n} cartes` : "3 à 10 cartes selon le mini-jeu"}${rw ? " · <b class=\"rates-luck\">chance +25 %</b> sur toutes les raretés au-dessus de Commune" : ""}</p>
+        <h2>${rw ? `🎁 ${esc((nx && nx.nom) || "Pack récompense")}` : "Booster normal"}</h2>
+        <p class="muted">${n ? `${n} cartes` : "3 à 10 cartes selon le mini-jeu"}${rw && !own ? " · <b class=\"rates-luck\">chance +25 %</b> sur toutes les raretés au-dessus de Commune" : ""}</p>
         <table class="rates-table">
           <thead><tr><th>Rareté</th><th>Chaque carte</th>${g ? `<th>Dernière carte</th>` : ""}</tr></thead>
           <tbody>${G.availableRarities().map((r) => `

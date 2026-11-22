@@ -1,3 +1,4 @@
+-- ⚠ Certaines fonctions de ce fichier ont été remplacées par tour-recompenses.sql : lancer ce dernier APRÈS.
 -- =========================================================
 -- TOUR INFERNALE CÔTÉ SERVEUR (+ récompense)
 -- Le combat est tiré au sort par le serveur (impossible de tricher) :

@@ -1,3 +1,4 @@
+-- ⚠ Certaines fonctions de ce fichier ont été remplacées par tour-recompenses.sql : lancer ce dernier APRÈS.
 -- =========================================================
 -- PACKS RÉCOMPENSE (mini-jeux) + MEMORY SOLO côté serveur
 -- - players.reward_packs : liste des packs gagnés pas encore ouverts [{n, src, at}]
