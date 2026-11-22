@@ -219,6 +219,9 @@ BM.Game = (function () {
   }
   function clearAccount() {
     state.account = null; state.collection = {}; state.pending = []; state.vitrine = [];
+    state.stats = { boosters: 0, fusions: 0, cartes: 0 };
+    // compte supprimé sur le serveur : on oublie aussi ce que le navigateur gardait (Tour Infernale)
+    try { ["bm_tour_best", "bm_tour_team"].forEach((k) => localStorage.removeItem(k)); } catch (e) {}
     save();
   }
   function takePending(n) { return state.pending.slice(0, n); }
